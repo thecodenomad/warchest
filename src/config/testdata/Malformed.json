@@ -1,0 +1,10 @@
+{
+  "purchased_coins": [
+    {
+      "coin_symbol": "ETH",
+      "amount": 10.1,
+      "purchased_price": .5,
+      "transaction_fee": 6.56,
+      "purchase_exchange_rate": 0.001
+    },
+}
