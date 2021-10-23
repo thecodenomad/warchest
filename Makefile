@@ -1,5 +1,3 @@
-.PHONY: all covtest fmt
-
 all: test build deploy
 
 build:
@@ -12,11 +10,11 @@ covtest:
 	go test -coverprofile=coverage.out ./...
 
 covreport: covtest
-	go tool cover -html=coverage.html
+	go tool cover -html=coverage.out
 
 deploy: build
-	docker status
+	# docker status
 
 test:
-	go test
+	go test ./...
 
