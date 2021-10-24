@@ -28,6 +28,8 @@ func RetrieveCoinData(symbol string) CoinInfo {
 
 	url := exchangeRateUrl + "?currency=" + symbol
 	resp, err := http.Get(url)
+
+	// TODO: Create custom error for failed response
 	if err != nil {
 		log.Fatal("ooopsss an error occurred, please try again")
 	}
@@ -35,7 +37,7 @@ func RetrieveCoinData(symbol string) CoinInfo {
 
 	var cResp JSONResponse
 
-	//Decode the data
+	//TODO: Create custom error for failure to decode
 	if err := json.NewDecoder(resp.Body).Decode(&cResp); err != nil {
 		log.Printf("error: %s", err)
 		log.Fatal("ooopsss! an error occurred, please try again")
