@@ -5,30 +5,61 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
+	"warchest/src/wallet"
 )
-
-type ConfigErr string
 
 var (
-	ErrReadingFile   = ConfigErr("Failed reading file!")
-	ErrFileNotFound  = ConfigErr("File not found!")
-	ErrMalformedJSON = ConfigErr("Config isn't correct JSON!")
+	ErrReadingFile   = ConfigurationError("Failed reading file!")
+	ErrFileNotFound  = ConfigurationError("File not found!")
+	ErrMalformedJSON = ConfigurationError("Config isn't correct JSON!")
 )
 
-func (c ConfigErr) Error() string {
+type ConfigurationError string
+
+type Config struct {
+	Transactions []Transaction `json:"coin_purchases"`
+}
+
+type Transaction struct {
+	CoinSymbol        string  `json:"coin_symbol"`
+	Amount            float64 `json:"amount"`
+	PurchasedPriceUSD float64 `json:"purchased_price_usd"`
+	TransactionFee    float64 `json:"transaction_fee"`
+}
+
+func (c ConfigurationError) Error() string {
 	return string(c)
 }
 
-type Config struct {
-	Coins PurchasedCoins `json:"purchased_coins"`
+func (c *Config) ToWallet() wallet.Wallet {
+
+	coins := make(map[string]wallet.Coin)
+
+	// Collect coins into a slice
+	for _, transaction := range c.Transactions {
+
+		// Is Coin found?
+		coin, ok := coins[transaction.CoinSymbol]
+		if !ok {
+			transactions := []wallet.CoinTransaction{transaction.ToCoinTransaction()}
+			coins[transaction.CoinSymbol] = wallet.Coin{transaction.CoinSymbol, 0.0, 0.0, 0.0, 0.0, transactions}
+		}
+
+		// Add transaction to coin
+		coin.Transactions = append(coin.Transactions, transaction.ToCoinTransaction())
+	}
+
+	wallet := wallet.Wallet{[]wallet.Coin{}, 0.0}
+	// Convert map to wallet
+	for _, coin := range coins {
+		wallet.Coins = append(wallet.Coins, coin)
+	}
+
+	return wallet
 }
 
-type PurchasedCoins []struct {
-	CoinSymbol      string  `json:"coin_symbol"`
-	Amount          float64 `json:"amount"`
-	PurchasedPrice  float64 `json:"purchased_price"`
-	TransactionFee  float64 `json:"transaction_fee"`
-	PurchaseRateUSD float64 `json:"purchase_rate_usd"`
+func (t Transaction) ToCoinTransaction() wallet.CoinTransaction {
+	return wallet.CoinTransaction{NumCoins: t.Amount, PurchasedPrice: t.PurchasedPriceUSD, TransactionFee: t.TransactionFee}
 }
 
 // LoadConfig loads the specified JSON file

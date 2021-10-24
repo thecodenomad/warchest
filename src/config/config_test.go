@@ -9,21 +9,19 @@ func TestLoadConfig(t *testing.T) {
 	t.Run("Test Valid Config", func(t *testing.T) {
 		tmpConfig, err := LoadConfig("./testdata/CoinConfig.json")
 		assert.Nil(t, err, "Should not fail loading string")
-		assert.Equal(t, len(tmpConfig.Coins), 2)
-		assert.Equal(t, tmpConfig.Coins[0].CoinSymbol, "ETH")
+		assert.Equal(t, len(tmpConfig.Transactions), 2)
+		assert.Equal(t, tmpConfig.Transactions[0].CoinSymbol, "ETH")
 
 		valueTests := []struct {
 			actualValue   float64
 			expectedValue float64
 		}{
-			{tmpConfig.Coins[0].Amount, 10.1},
-			{tmpConfig.Coins[0].PurchasedPrice, 34.5},
-			{tmpConfig.Coins[0].TransactionFee, 6.56},
-			{tmpConfig.Coins[0].PurchaseRateUSD, 0.001},
-			{tmpConfig.Coins[1].Amount, 5.0},
-			{tmpConfig.Coins[1].PurchasedPrice, 2.5},
-			{tmpConfig.Coins[1].TransactionFee, 0.35},
-			{tmpConfig.Coins[1].PurchaseRateUSD, 0.40},
+			{tmpConfig.Transactions[0].Amount, 10.1},
+			{tmpConfig.Transactions[0].PurchasedPriceUSD, 34.5},
+			{tmpConfig.Transactions[0].TransactionFee, 6.56},
+			{tmpConfig.Transactions[1].Amount, 5.0},
+			{tmpConfig.Transactions[1].PurchasedPriceUSD, 2.5},
+			{tmpConfig.Transactions[1].TransactionFee, 0.35},
 		}
 
 		// Validate the rest of the imported values
@@ -45,5 +43,16 @@ func TestLoadConfig(t *testing.T) {
 		assert.Equal(t, tmpConfig, Config{}, "Config not empty!")
 		assert.Error(t, err, "should have raised an error")
 		assert.Equal(t, ErrMalformedJSON, err, "should have raised a malformed error")
+	})
+
+	t.Run("Convert config to wallet", func(t *testing.T) {
+		tmpConfig, _ := LoadConfig("./testdata/CoinConfig.json")
+		wallet := tmpConfig.ToWallet()
+		assert.Equal(t, len(wallet.Coins), 2, "Failed to have correct number of coins")
+
+		// Each coin should have 1 transaction
+		for _, coin := range wallet.Coins {
+			assert.Equal(t, len(coin.Transactions), 1, "Failed to have correct number of transactions")
+		}
 	})
 }

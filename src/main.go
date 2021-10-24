@@ -21,7 +21,7 @@ func main() {
 		os.Exit(FailedLoadConfigRC)
 	}
 
-	firstCoin := warchestConfig.Coins[0].CoinSymbol
+	firstCoin := warchestConfig.Transactions[0].CoinSymbol
 	fmt.Printf("Warchest config, first coin in config: %s\n", firstCoin)
 
 	coinInfo, err := query.RetrieveCoinData(firstCoin)
