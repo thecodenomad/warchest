@@ -5,10 +5,12 @@ import (
 	"os"
 	"warchest/src/config"
 	"warchest/src/query"
+	"warchest/src/wallet"
 )
 
 const FailedLoadConfigRC = 2
 const FailedRetrievingData = 3
+const FailedCalculatingWallet = 3
 const WarchestConfigEnv = "WARCHEST_CONFIG"
 
 func main() {
@@ -33,4 +35,14 @@ func main() {
 		coinInfo.ExchangeRates.USD,
 		coinInfo.ExchangeRates.GBP,
 		coinInfo.ExchangeRates.EUR)
+
+	localWallet := warchestConfig.ToWallet()
+
+	netProfit, err := wallet.CalculateNetProfit(localWallet)
+	if err != nil {
+		fmt.Printf("Failed to calculate Wallet's Profit: %s\n", err)
+		os.Exit(FailedCalculatingWallet)
+	}
+
+	fmt.Printf("Current Wallet's Net Profit: %.10f\n", netProfit)
 }

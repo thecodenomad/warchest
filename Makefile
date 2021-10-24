@@ -11,7 +11,7 @@ WARCHEST_CONFIG="${WARCHEST_CONFIG:=$(pwd)/src/config/testdata/CoinConfig.json}"
 # Make Targets              #
 #############################
 
-all: test build deploy
+all: clean test build deploy
 
 build:
 	go build -o warchest src/main.go

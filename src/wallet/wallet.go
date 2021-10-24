@@ -41,13 +41,6 @@ func (c *Coin) UpdateRates() {
 	c.CurrentRateUSD = coinInfo.ExchangeRates.USD
 }
 
-func (c *Coin) UpdateProfit() {
-	// Update the current coins rates
-	c.UpdateRates()
-
-	// Calculate profit
-}
-
 // CalculateCoinProfit calculates the net profit across all coin purchases (assume coins already have rates updated)
 func CalculateCoinProfit(coin Coin) (float64, error) {
 
@@ -70,5 +63,16 @@ func CalculateCoinProfit(coin Coin) (float64, error) {
 
 func CalculateNetProfit(wallet Wallet) (float64, error) {
 
-	return 0.0, nil
+	netProfit := 0.0
+
+	for _, coin := range wallet.Coins {
+		coinProfit, err := CalculateCoinProfit(coin)
+		if err != nil {
+			fmt.Printf("Failed to calculate profit for %s\n", coin.CoinSymbol)
+			return 0.0, err
+		}
+		netProfit += coinProfit
+	}
+
+	return netProfit, nil
 }
