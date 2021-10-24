@@ -9,21 +9,21 @@ func TestLoadConfig(t *testing.T) {
 	t.Run("Test Valid Config", func(t *testing.T) {
 		tmpConfig, err := LoadConfig("./testdata/CoinConfig.json")
 		assert.Nil(t, err, "Should not fail loading string")
-		assert.Equal(t, len(tmpConfig.PurchasedCoins), 2)
-		assert.Equal(t, tmpConfig.PurchasedCoins[0].CoinSymbol, "ETH")
+		assert.Equal(t, len(tmpConfig.Coins), 2)
+		assert.Equal(t, tmpConfig.Coins[0].CoinSymbol, "ETH")
 
 		valueTests := []struct {
 			actualValue   float64
 			expectedValue float64
 		}{
-			{tmpConfig.PurchasedCoins[0].Amount, 10.1},
-			{tmpConfig.PurchasedCoins[0].PurchasedPrice, 34.5},
-			{tmpConfig.PurchasedCoins[0].TransactionFee, 6.56},
-			{tmpConfig.PurchasedCoins[0].PurchaseExchangeRate, 0.001},
-			{tmpConfig.PurchasedCoins[1].Amount, 5.0},
-			{tmpConfig.PurchasedCoins[1].PurchasedPrice, 2.5},
-			{tmpConfig.PurchasedCoins[1].TransactionFee, 0.35},
-			{tmpConfig.PurchasedCoins[1].PurchaseExchangeRate, 0.40},
+			{tmpConfig.Coins[0].Amount, 10.1},
+			{tmpConfig.Coins[0].PurchasedPrice, 34.5},
+			{tmpConfig.Coins[0].TransactionFee, 6.56},
+			{tmpConfig.Coins[0].PurchaseRateUSD, 0.001},
+			{tmpConfig.Coins[1].Amount, 5.0},
+			{tmpConfig.Coins[1].PurchasedPrice, 2.5},
+			{tmpConfig.Coins[1].TransactionFee, 0.35},
+			{tmpConfig.Coins[1].PurchaseRateUSD, 0.40},
 		}
 
 		// Validate the rest of the imported values

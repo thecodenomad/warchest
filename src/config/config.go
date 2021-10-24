@@ -20,13 +20,15 @@ func (c ConfigErr) Error() string {
 }
 
 type Config struct {
-	PurchasedCoins []struct {
-		CoinSymbol           string  `json:"coin_symbol"`
-		Amount               float64 `json:"amount"`
-		PurchasedPrice       float64 `json:"purchased_price"`
-		TransactionFee       float64 `json:"transaction_fee"`
-		PurchaseExchangeRate float64 `json:"purchase_exchange_rate"`
-	} `json:"purchased_coins"`
+	Coins PurchasedCoins `json:"purchased_coins"`
+}
+
+type PurchasedCoins []struct {
+	CoinSymbol      string  `json:"coin_symbol"`
+	Amount          float64 `json:"amount"`
+	PurchasedPrice  float64 `json:"purchased_price"`
+	TransactionFee  float64 `json:"transaction_fee"`
+	PurchaseRateUSD float64 `json:"purchase_rate_usd"`
 }
 
 // LoadConfig loads the specified JSON file
