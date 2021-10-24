@@ -56,3 +56,16 @@ A full example of a config can be seen below:
   ]
 }
 ```
+
+## Make Targets
+
+Current make targets:
+
+#### `make test`
+- Will run all the unittests and any integration tests
+
+#### `make build`
+- Will build the warchest binary
+
+#### `make deploy`
+- Will deploy warchest in a docker container (WIP - not yet available)
