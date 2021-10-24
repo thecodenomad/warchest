@@ -18,9 +18,9 @@ type CoinInfo struct {
 }
 
 type Rates struct {
-	EURO string `json:"EUR"`
-	GBP  string `json:"GBP"`
-	USD  string `json:"USD"`
+	EUR string `json:"EUR"`
+	GBP string `json:"GBP"`
+	USD string `json:"USD"`
 }
 
 // RetrieveCoinData will return exchange rates for a given Crypto Curraency Symbol
