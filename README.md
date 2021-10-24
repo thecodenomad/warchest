@@ -12,23 +12,24 @@ The purpose of this app is to retrieve stats based on cryptocurrency holdings to
 The config file needs to be in JSON format, and must at least contain key `purchased_coins` that is
 an array of purchased coin objects:
 
-*Empty Config*
+**Empty Config**
 ```
 {
-"purchased_coins": []
+    "purchased_coins": []
 }
 ```
 
-*`purchased_coin` object*
+**`purchased_coin` object**
 
 The purchased coin object must have the following fields:
 
-```{
-"coin_symbol": "ETH",
-"amount": 10.1,
-"purchased_price": 34.5,
-"transaction_fee": 6.56,
-"purchase_exchange_rate": 0.001
+```
+{
+    "coin_symbol": "ETH",
+    "amount": 10.1,
+    "purchased_price": 34.5,
+    "transaction_fee": 6.56,
+    "purchase_exchange_rate": 0.001
 }
 ```
 
