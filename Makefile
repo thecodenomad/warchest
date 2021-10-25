@@ -5,7 +5,7 @@
 #############################
 # Essential Build Variables #
 #############################
-WARCHEST_CONFIG="${WARCHEST_CONFIG:=$(pwd)/src/config/testdata/CoinConfig.json}"
+# WARCHEST_CONFIG="${WARCHEST_CONFIG:=$(pwd)/src/config/testdata/CoinConfig.json}"
 
 #############################
 # Make Targets              #

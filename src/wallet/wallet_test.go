@@ -12,12 +12,11 @@ func TestCalculateCoinProfit(t *testing.T) {
 		{4.0, 5.0, 6.0}, // $26 cost
 	}
 
-	testCoin := Coin{"ETH", 30.0, 40.0, 50.0, 25, transactions}
-	expectedNetProfit := 5*testCoin.CurrentRateUSD - (1.0*2.0 + 3.0 + 4.0*5.0 + 6.0)
+	testRateUSD := 30.0
+	expectedNetProfit := 5*testRateUSD - (1.0*2.0 + 3.0 + 4.0*5.0 + 6.0)
+	testCoin := Coin{"ETH", testRateUSD, 40.0, 50.0, 25, 5.0, 31.0, 0.0, transactions}
 
-	actualResp, err := CalculateCoinProfit(testCoin)
+	testCoin.UpdateProfit()
 
-	assert.Nil(t, err, "failed to calculate profits")
-	assert.Equal(t, expectedNetProfit, actualResp, "should be the same")
-
+	assert.Equal(t, expectedNetProfit, testCoin.Profit, "should be the same")
 }

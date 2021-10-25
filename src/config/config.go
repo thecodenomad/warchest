@@ -36,22 +36,29 @@ func (c *Config) ToWallet() wallet.Wallet {
 	coins := make(map[string]wallet.Coin)
 
 	// Collect coins into a slice
-	for _, transaction := range c.Transactions {
+	for _, configTransaction := range c.Transactions {
+
+		coinSymbol := configTransaction.CoinSymbol
 
 		// Is Coin found?
-		coin, ok := coins[transaction.CoinSymbol]
+		coin, ok := coins[coinSymbol]
 		if !ok {
-			transactions := []wallet.CoinTransaction{transaction.ToCoinTransaction()}
-			coins[transaction.CoinSymbol] = wallet.Coin{transaction.CoinSymbol, 0.0, 0.0, 0.0, 0.0, transactions}
+			coinToInit := wallet.Coin{coinSymbol, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, []wallet.CoinTransaction{}}
+			coins[configTransaction.CoinSymbol] = coinToInit
+
+			// Coin to work with for the rest of the transaction collection
+			coin = coinToInit
 		}
 
-		// Add transaction to coin
-		coin.Transactions = append(coin.Transactions, transaction.ToCoinTransaction())
+		coinTransaction := wallet.CoinTransaction{configTransaction.Amount, configTransaction.PurchasedPriceUSD, configTransaction.TransactionFee}
+		coin.Transactions = append(coin.Transactions, coinTransaction)
+		coins[configTransaction.CoinSymbol] = coin
 	}
 
 	wallet := wallet.Wallet{[]wallet.Coin{}, 0.0}
 	// Convert map to wallet
 	for _, coin := range coins {
+		// Create new coins from the collection above
 		wallet.Coins = append(wallet.Coins, coin)
 	}
 
