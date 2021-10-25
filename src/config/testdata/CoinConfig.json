@@ -1,18 +1,16 @@
 {
-  "purchased_coins": [
+  "coin_purchases": [
     {
       "coin_symbol": "ETH",
       "amount": 10.1,
-      "purchased_price": 34.5,
-      "transaction_fee": 6.56,
-      "purchase_exchange_rate": 0.001
+      "purchased_price_usd": 34.5,
+      "transaction_fee": 6.56
     },
     {
       "coin_symbol": "ALGO",
       "amount": 5.0,
-      "purchased_price": 2.5,
-      "transaction_fee": 0.35,
-      "purchase_exchange_rate": 0.40
+      "purchased_price_usd": 2.5,
+      "transaction_fee": 0.35
     }
   ]
 }

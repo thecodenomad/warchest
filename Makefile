@@ -1,4 +1,17 @@
-all: test build deploy
+#
+# Copyright 2021, Ray Gomez <codenomad@gmail.com>
+#
+
+#############################
+# Essential Build Variables #
+#############################
+# WARCHEST_CONFIG="${WARCHEST_CONFIG:=$(pwd)/src/config/testdata/CoinConfig.json}"
+
+#############################
+# Make Targets              #
+#############################
+
+all: clean test build deploy
 
 build:
 	go build -o warchest src/main.go
@@ -17,4 +30,3 @@ deploy: build
 
 test:
 	go test ./...
-

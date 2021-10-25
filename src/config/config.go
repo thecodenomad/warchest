@@ -5,28 +5,68 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
+	"warchest/src/wallet"
 )
-
-type ConfigErr string
 
 var (
-	ErrReadingFile   = ConfigErr("Failed reading file!")
-	ErrFileNotFound  = ConfigErr("File not found!")
-	ErrMalformedJSON = ConfigErr("Config isn't correct JSON!")
+	ErrReadingFile   = ConfigurationError("Failed reading file!")
+	ErrFileNotFound  = ConfigurationError("File not found!")
+	ErrMalformedJSON = ConfigurationError("Config isn't correct JSON!")
 )
 
-func (c ConfigErr) Error() string {
+type ConfigurationError string
+
+type Config struct {
+	Transactions []Transaction `json:"coin_purchases"`
+}
+
+type Transaction struct {
+	CoinSymbol        string  `json:"coin_symbol"`
+	Amount            float64 `json:"amount"`
+	PurchasedPriceUSD float64 `json:"purchased_price_usd"`
+	TransactionFee    float64 `json:"transaction_fee"`
+}
+
+func (c ConfigurationError) Error() string {
 	return string(c)
 }
 
-type Config struct {
-	PurchasedCoins []struct {
-		CoinSymbol           string  `json:"coin_symbol"`
-		Amount               float64 `json:"amount"`
-		PurchasedPrice       float64 `json:"purchased_price"`
-		TransactionFee       float64 `json:"transaction_fee"`
-		PurchaseExchangeRate float64 `json:"purchase_exchange_rate"`
-	} `json:"purchased_coins"`
+func (c *Config) ToWallet() wallet.Wallet {
+
+	coins := make(map[string]wallet.Coin)
+
+	// Collect coins into a slice
+	for _, configTransaction := range c.Transactions {
+
+		coinSymbol := configTransaction.CoinSymbol
+
+		// Is Coin found?
+		coin, ok := coins[coinSymbol]
+		if !ok {
+			coinToInit := wallet.Coin{coinSymbol, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, []wallet.CoinTransaction{}}
+			coins[configTransaction.CoinSymbol] = coinToInit
+
+			// Coin to work with for the rest of the transaction collection
+			coin = coinToInit
+		}
+
+		coinTransaction := wallet.CoinTransaction{configTransaction.Amount, configTransaction.PurchasedPriceUSD, configTransaction.TransactionFee}
+		coin.Transactions = append(coin.Transactions, coinTransaction)
+		coins[configTransaction.CoinSymbol] = coin
+	}
+
+	wallet := wallet.Wallet{[]wallet.Coin{}, 0.0}
+	// Convert map to wallet
+	for _, coin := range coins {
+		// Create new coins from the collection above
+		wallet.Coins = append(wallet.Coins, coin)
+	}
+
+	return wallet
+}
+
+func (t Transaction) ToCoinTransaction() wallet.CoinTransaction {
+	return wallet.CoinTransaction{NumCoins: t.Amount, PurchasedPrice: t.PurchasedPriceUSD, TransactionFee: t.TransactionFee}
 }
 
 // LoadConfig loads the specified JSON file

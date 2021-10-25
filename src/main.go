@@ -1,16 +1,23 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"warchest/src/config"
-	"warchest/src/query"
+	"warchest/src/wallet"
 )
 
 const FailedLoadConfigRC = 2
+const FailedRetrievingData = 3
+const FailedCalculatingWallet = 3
 const WarchestConfigEnv = "WARCHEST_CONFIG"
 
 func main() {
+
+	serverPtr := flag.Bool("server", false, "whether or not to start server (default port: 8080")
+
+	fmt.Println("Server enabled:", *serverPtr)
 
 	configPath := os.Getenv(WarchestConfigEnv)
 
@@ -20,12 +27,14 @@ func main() {
 		os.Exit(FailedLoadConfigRC)
 	}
 
-	firstCoin := warchestConfig.PurchasedCoins[0].CoinSymbol
-	fmt.Printf("Warchest config, first coin in config: %s\n", firstCoin)
+	fmt.Println("Updating crypto wallet")
+	localWallet := warchestConfig.ToWallet()
 
-	coinInfo := query.RetrieveCoinData(firstCoin)
-	fmt.Printf("Exchange Rates for %s:\nUSD: %s\nGBP: %s\nEURO: %s\n", firstCoin,
-		coinInfo.ExchangeRates.USD,
-		coinInfo.ExchangeRates.GBP,
-		coinInfo.ExchangeRates.EUR)
+	netProfit, err := wallet.CalculateNetProfit(localWallet)
+	if err != nil {
+		fmt.Printf("Failed to calculate Wallet's Profit: %s\n", err)
+		os.Exit(FailedCalculatingWallet)
+	}
+
+	fmt.Printf("Current Wallet's Net Profit: %.10f\n", netProfit)
 }

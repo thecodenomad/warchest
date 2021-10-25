@@ -18,13 +18,15 @@ type CoinInfo struct {
 }
 
 type Rates struct {
-	EUR string `json:"EUR"`
-	GBP string `json:"GBP"`
-	USD string `json:"USD"`
+	EUR float64 `json:"EUR,string"`
+	GBP float64 `json:"GBP,string"`
+	USD float64 `json:"USD,string"`
 }
 
+//type Wallet map[string]map[string]float64
+
 // RetrieveCoinData will return exchange rates for a given Crypto Curraency Symbol
-func RetrieveCoinData(symbol string) CoinInfo {
+func RetrieveCoinData(symbol string) (CoinInfo, error) {
 
 	url := exchangeRateUrl + "?currency=" + symbol
 	resp, err := http.Get(url)
@@ -41,7 +43,8 @@ func RetrieveCoinData(symbol string) CoinInfo {
 	if err := json.NewDecoder(resp.Body).Decode(&cResp); err != nil {
 		log.Printf("error: %s", err)
 		log.Fatal("ooopsss! an error occurred, please try again")
+		return CoinInfo{}, err
 	}
 
-	return cResp.Data
+	return cResp.Data, err
 }
