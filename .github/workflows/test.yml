@@ -31,7 +31,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: coverage-report-${{ matrix.os }}
+          name: coverage-report-${{ matrix.os }}-${{ matrix.go-version }}
           path: |
             coverage.out
             coverage.html
