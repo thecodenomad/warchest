@@ -7,32 +7,6 @@ The purpose of this app is to retrieve stats based on cryptocurrency holdings to
 - Read in JSON config file (exposed via Environment Variable "WARCHEST_CONFIG")
 - Calculate net profit based on coins held, purchased price, and transaction fees
 
-## Config
-
-The config file needs to be in JSON format, and must at least contain key `purchased_coins` that is
-an array of purchased coin objects:
-
-**Empty Config**
-```
-{
-    "purchased_coins": []
-}
-```
-
-**`transaction` object**
-
-The the list of objects in the config should be the initial transactions when your crypto currencies were
-purchased:
-
-```
-{
-    "coin_symbol": "ETH",
-    "amount": 10.1,
-    "purchased_price": 34.5,
-    "transaction_fee": 6.56
-}
-```
-
 ## Building
 
 Assuming `make` and `golang >= 1.16` are installed, then just run `make`
