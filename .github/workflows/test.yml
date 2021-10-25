@@ -23,5 +23,15 @@ jobs:
           go-version: ${{ matrix.go-version }}
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Get go2xunit
+        run: go get github.com/tebeka/go2xunit
       - name: Run Unittests
-        run: go test ./...
+        run: make covreport
+      - name: Archive test results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: coverage-report-${{ matrix.os }}-${{ matrix.go-version }}
+          path: |
+            coverage.out
+            coverage.html

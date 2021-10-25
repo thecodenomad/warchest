@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-const exchangeRateUrl = "https://api.coinbase.com/v2/exchange-rates"
+const ExchangeRateUrl = "https://api.coinbase.com/v2/exchange-rates"
 
 type JSONResponse struct {
 	Data CoinInfo `json:"data"`
@@ -28,12 +28,12 @@ type Rates struct {
 // RetrieveCoinData will return exchange rates for a given Crypto Curraency Symbol
 func RetrieveCoinData(symbol string) (CoinInfo, error) {
 
-	url := exchangeRateUrl + "?currency=" + symbol
+	url := ExchangeRateUrl + "?currency=" + symbol
 	resp, err := http.Get(url)
 
-	// TODO: Create custom error for failed response
+	//TODO: Create custom error for failure to decode
 	if err != nil {
-		log.Fatal("ooopsss an error occurred, please try again")
+		return CoinInfo{}, err
 	}
 	defer resp.Body.Close()
 
@@ -42,7 +42,6 @@ func RetrieveCoinData(symbol string) (CoinInfo, error) {
 	//TODO: Create custom error for failure to decode
 	if err := json.NewDecoder(resp.Body).Decode(&cResp); err != nil {
 		log.Printf("error: %s", err)
-		log.Fatal("ooopsss! an error occurred, please try again")
 		return CoinInfo{}, err
 	}
 

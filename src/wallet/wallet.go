@@ -2,6 +2,7 @@ package wallet
 
 import (
 	"fmt"
+	"log"
 	"warchest/src/query"
 )
 
@@ -35,7 +36,11 @@ func (c *Coin) UpdateRates() {
 
 	coinInfo, err := query.RetrieveCoinData(c.CoinSymbol)
 	if err != nil {
-		fmt.Printf("Failed to retrieve market rates for %s\n", c.CoinSymbol)
+		log.Printf("Failed to retrieve market rates for %s\n", c.CoinSymbol)
+		// Reset instead of erroring
+		c.CurrentRateEUR = 0.0
+		c.CurrentRateGBP = 0.0
+		c.CurrentRateUSD = 0.0
 		return
 	}
 
@@ -50,14 +55,11 @@ func (c *Coin) UpdateCost() {
 	totalNumCoins := 0.0
 	totalExpense := 0.0
 
-	fmt.Printf("There are %d %s transactions in your wallet, calculating...\n", len(c.Transactions), c.CoinSymbol)
+	log.Printf("There are %d %s transactions in your wallet, calculating...\n", len(c.Transactions), c.CoinSymbol)
 
 	for _, transaction := range c.Transactions {
 		totalNumCoins += transaction.NumCoins
 		totalExpense += transaction.NumCoins*transaction.PurchasedPrice + transaction.TransactionFee
-
-		//fmt.Printf("Transaction has %.6f of %s\n", transaction.NumCoins, c.CoinSymbol)
-		//fmt.Printf("Transaction has %.6f cost\n", totalExpense)
 	}
 
 	c.Amount = totalNumCoins
@@ -83,14 +85,14 @@ func (c *Coin) Banner() {
 	fmt.Printf("\tInitial Cost of %s: %.6f\n", c.CoinSymbol, c.Cost)
 	fmt.Printf("\tTotal Amount of %s: %.6f\n", c.CoinSymbol, c.Amount)
 	fmt.Printf("\tCurrent cost of %s: %.6f\n", c.CoinSymbol, c.Amount*c.CurrentRateUSD)
-	fmt.Printf("\tTotal profit for %s: %.4f\n", c.CoinSymbol, c.Profit)
+	fmt.Printf("\tTotal profit for %s: %.6f\n", c.CoinSymbol, c.Profit)
 }
 
 // CalculateNetProfit will calculate the total profit for the coins in the provided Wallet
 func CalculateNetProfit(wallet Wallet) (float64, error) {
 	netProfit := 0.0
 
-	fmt.Printf("There are %d coin(s) in your wallet, calculating...\n", len(wallet.Coins))
+	log.Printf("There are %d coin(s) in your wallet, calculating...\n", len(wallet.Coins))
 	for _, coin := range wallet.Coins {
 		// Make sure we have the latest rates
 		coin.Update()
