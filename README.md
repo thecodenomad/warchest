@@ -19,17 +19,17 @@ an array of purchased coin objects:
 }
 ```
 
-**`purchased_coin` object**
+**`transaction` object**
 
-The purchased coin object must have the following fields:
+The the list of objects in the config should be the initial transactions when your crypto currencies were
+purchased:
 
 ```
 {
     "coin_symbol": "ETH",
     "amount": 10.1,
     "purchased_price": 34.5,
-    "transaction_fee": 6.56,
-    "purchase_exchange_rate": 0.001
+    "transaction_fee": 6.56
 }
 ```
 
@@ -38,36 +38,48 @@ A full example of a config can be seen below:
 
 ``` 
 {
-  "purchased_coins": [
+  "coin_purchases": [
     {
       "coin_symbol": "ETH",
       "amount": 10.1,
       "purchased_price": 34.5,
       "transaction_fee": 6.56,
-      "purchase_exchange_rate": 0.001
     },
     {
       "coin_symbol": "ALGO",
       "amount": 5.0,
       "purchased_price": 2.5,
       "transaction_fee": 0.35,
-      "purchase_exchange_rate": 0.40
     }
   ]
 }
 ```
 
-## Make Targets
+## Building
 
-Current make targets:
+Assuming `make` and `golang >= 1.16` are installed, then just run `make`
 
-#### `make test`
-- Will run all the unittests and any integration tests
+## Executing 
 
-#### `make build`
-- Will build the warchest binary
+Before you can run the binary, you will need to create a config file that includes all of the transactions
+that have been made for all the coins in your wallet. See the above section on formatting.
 
-#### `make deploy`
-- Will deploy warchest in a docker container (WIP - not yet available)
+Once the config is created, it can be specified at execution time
 
-#### TBD
+`WARCHEST_CONFIG=<your config filepath> ./warchest`
+
+Ex.
+
+```
+$ ./warchest 
+Server enabled: false
+Updating crypto wallet
+2021/10/25 12:59:35 There are 1 coin(s) in your wallet, calculating...
+2021/10/25 12:59:35 There are 9 DOGE transactions in your wallet, calculating...
+        Current rate for DOGE: 0.266650
+        Initial Cost of DOGE: 0.266650
+        Total Amount of DOGE: 1
+        Current cost of DOGE: 0.266650
+        Total profit for DOGE: 0.0
+Current Wallet's Net Profit: 0.0
+```
