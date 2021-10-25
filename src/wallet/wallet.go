@@ -2,6 +2,7 @@ package wallet
 
 import (
 	"fmt"
+	"log"
 	"warchest/src/query"
 )
 
@@ -35,7 +36,7 @@ func (c *Coin) UpdateRates() {
 
 	coinInfo, err := query.RetrieveCoinData(c.CoinSymbol)
 	if err != nil {
-		fmt.Printf("Failed to retrieve market rates for %s\n", c.CoinSymbol)
+		log.Printf("Failed to retrieve market rates for %s\n", c.CoinSymbol)
 		// Reset instead of erroring
 		c.CurrentRateEUR = 0.0
 		c.CurrentRateGBP = 0.0
@@ -54,7 +55,7 @@ func (c *Coin) UpdateCost() {
 	totalNumCoins := 0.0
 	totalExpense := 0.0
 
-	fmt.Printf("There are %d %s transactions in your wallet, calculating...\n", len(c.Transactions), c.CoinSymbol)
+	log.Printf("There are %d %s transactions in your wallet, calculating...\n", len(c.Transactions), c.CoinSymbol)
 
 	for _, transaction := range c.Transactions {
 		totalNumCoins += transaction.NumCoins
@@ -91,7 +92,7 @@ func (c *Coin) Banner() {
 func CalculateNetProfit(wallet Wallet) (float64, error) {
 	netProfit := 0.0
 
-	fmt.Printf("There are %d coin(s) in your wallet, calculating...\n", len(wallet.Coins))
+	log.Printf("There are %d coin(s) in your wallet, calculating...\n", len(wallet.Coins))
 	for _, coin := range wallet.Coins {
 		// Make sure we have the latest rates
 		coin.Update()

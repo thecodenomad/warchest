@@ -19,11 +19,11 @@ build:
 clean:
 	rm -rf coverage.out coverage.html warchest
 
-covtest:
-	go test -coverprofile=coverage.out ./...
+covtest: clean
+	go test -v -coverprofile=coverage.out ./...
 
-covreport: covtest
-	go tool cover -html=coverage.out
+covreport: clean covtest
+	go tool cover -html=coverage.out -o coverage.html
 
 deploy: build
 	# docker status
