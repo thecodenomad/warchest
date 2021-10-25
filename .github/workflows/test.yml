@@ -31,7 +31,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ env.OSNAME }}
+          name: coverage_report
           path: |
             coverage.out
             coverage.html
