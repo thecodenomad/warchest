@@ -12,6 +12,7 @@ var (
 	ErrReadingFile   = ConfigurationError("Failed reading file!")
 	ErrFileNotFound  = ConfigurationError("File not found!")
 	ErrMalformedJSON = ConfigurationError("Config isn't correct JSON!")
+	ErrOnUnMarshall  = ConfigurationError("Failed Unmarshalling JSON!")
 )
 
 type ConfigurationError string
@@ -65,10 +66,6 @@ func (c *Config) ToWallet() wallet.Wallet {
 	return wallet
 }
 
-func (t Transaction) ToCoinTransaction() wallet.CoinTransaction {
-	return wallet.CoinTransaction{NumCoins: t.Amount, PurchasedPrice: t.PurchasedPriceUSD, TransactionFee: t.TransactionFee}
-}
-
 // LoadConfig loads the specified JSON file
 func LoadConfig(filepath string) (Config, error) {
 
@@ -92,11 +89,7 @@ func LoadConfig(filepath string) (Config, error) {
 	tmpConfig := Config{}
 	err = json.Unmarshal(byteValue, &tmpConfig)
 	if err != nil {
-		var synErr *json.SyntaxError
-		if errors.As(err, &synErr) {
-			return Config{}, ErrMalformedJSON
-		}
-		return Config{}, ErrReadingFile
+		return Config{}, ErrOnUnMarshall
 	}
 	return tmpConfig, err
 }

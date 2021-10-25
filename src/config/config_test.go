@@ -35,14 +35,20 @@ func TestLoadConfig(t *testing.T) {
 		assert.Equal(t, tmpConfig, Config{}, "Config not empty!")
 		assert.Error(t, err, "should have raised an error")
 		assert.Equal(t, ErrFileNotFound, err, "should have raised a file not found error")
-
 	})
+
+	//t.Run("Test permissions issues (simulate corruption)", func(t *testing.T) {
+	//	tmpConfig, err := LoadConfig("./testdata/Unreadable.json")
+	//	assert.Equal(t, tmpConfig, Config{}, "Config not empty!")
+	//	assert.Error(t, err, "should have raised an error")
+	//	assert.Equal(t, ErrReadingFile, err, "should have raised a read error")
+	//})
 
 	t.Run("Test malformed JSON", func(t *testing.T) {
 		tmpConfig, err := LoadConfig("./testdata/Malformed.json")
 		assert.Equal(t, tmpConfig, Config{}, "Config not empty!")
 		assert.Error(t, err, "should have raised an error")
-		assert.Equal(t, ErrMalformedJSON, err, "should have raised a malformed error")
+		assert.Equal(t, ErrOnUnMarshall, err, "should have raised a malformed error")
 	})
 
 	t.Run("Convert config to wallet", func(t *testing.T) {
@@ -53,6 +59,23 @@ func TestLoadConfig(t *testing.T) {
 		// Each coin should have 1 transaction
 		for _, coin := range wallet.Coins {
 			assert.Equal(t, len(coin.Transactions), 1, "Failed to have correct number of transactions")
+		}
+	})
+
+	// addmittingly overkill, and borderline useful, but it makes for full coverage!
+	t.Run("Test error handling", func(t *testing.T) {
+		valueTests := []struct {
+			actualValue   string
+			expectedValue string
+		}{
+			{ErrReadingFile.Error(), "Failed reading file!"},
+			{ErrFileNotFound.Error(), "File not found!"},
+			{ErrMalformedJSON.Error(), "Config isn't correct JSON!"},
+			{ErrOnUnMarshall.Error(), "Failed Unmarshalling JSON!"},
+		}
+		// Validate the rest of the imported values
+		for _, tt := range valueTests {
+			assert.Equal(t, tt.expectedValue, tt.actualValue)
 		}
 	})
 }
