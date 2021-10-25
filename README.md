@@ -33,6 +33,15 @@ purchased:
 }
 ```
 
+## Building
+
+Assuming `make` and `golang >= 1.16` are installed, then just run `make`
+
+## Executing 
+
+Before you can run the binary, you will need to create a config file that includes all of the transactions
+that have been made for all the coins in your wallet. See the below for formatting.
+
 ### Example Config
 A full example of a config can be seen below:
 
@@ -42,27 +51,18 @@ A full example of a config can be seen below:
     {
       "coin_symbol": "ETH",
       "amount": 10.1,
-      "purchased_price": 34.5,
+      "purchased_price": 100.0,
       "transaction_fee": 6.56,
     },
     {
       "coin_symbol": "ALGO",
       "amount": 5.0,
-      "purchased_price": 2.5,
+      "purchased_price": 1.2,
       "transaction_fee": 0.35,
     }
   ]
 }
 ```
-
-## Building
-
-Assuming `make` and `golang >= 1.16` are installed, then just run `make`
-
-## Executing 
-
-Before you can run the binary, you will need to create a config file that includes all of the transactions
-that have been made for all the coins in your wallet. See the above section on formatting.
 
 Once the config is created, it can be specified at execution time
 
