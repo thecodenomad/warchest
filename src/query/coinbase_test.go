@@ -42,7 +42,7 @@ func TestRetrieveCoinData(t *testing.T) {
 
 		// Test variables
 		symbol := "ETH"
-		url := ExchangeRateUrl + "?currency=" + symbol
+		url := CBExchangeRateUrl + "?currency=" + symbol
 
 		// Setup capture for HTTP call
 		httpmock.Activate()
@@ -63,3 +63,19 @@ func TestRetrieveCoinData(t *testing.T) {
 		assert.Equal(t, CoinInfo{}, coinInfo)
 	})
 }
+
+//func TestCBRetrieveUserID(t *testing.T) {
+//
+//	cbAuth := auth.CBAuth{}
+//	url := CBUserUrl + CBUserUrl
+//
+//	httpmock.Activate()
+//	defer httpmock.DeactivateAndReset()
+//	mockedResponse := httpmock.NewStringResponder(200,
+//		`	{ "data": { "id": "9da7a204-544e-5fd1-9a12-61176c5d4cd8" } }`)
+//	httpmock.RegisterResponder("GET", url, mockedResponse)
+//
+//	actualResp, _ := CBRetrieveUserID(cbAuth)
+//	expectedResp := "9da7a204-544e-5fd1-9a12-61176c5d4cd8"
+//	assert.Equal(t, expectedResp, actualResp)
+//}

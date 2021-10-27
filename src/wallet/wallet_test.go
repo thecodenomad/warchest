@@ -30,7 +30,7 @@ func TestCoin_Update(t *testing.T) {
 
 	// Test variables
 	symbol := "ETH"
-	url := query.ExchangeRateUrl + "?currency=" + symbol
+	url := query.CBBaseURL + query.CBExchangeRateUrl + "?currency=" + symbol
 
 	// Setup capture for HTTP call
 	httpmock.Activate()
@@ -98,7 +98,7 @@ func TestCalculateNetProfit(t *testing.T) {
 
 	// Test variables
 	symbol := "ETH"
-	url := query.ExchangeRateUrl + "?currency=" + symbol
+	url := query.CBBaseURL + query.CBExchangeRateUrl + "?currency=" + symbol
 
 	// Pedantic to help with extensibility
 	testAmount := 1.0

@@ -4,7 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"warchest/src/auth"
 	"warchest/src/config"
+	"warchest/src/query"
 	"warchest/src/wallet"
 )
 
@@ -12,6 +14,8 @@ const FailedLoadConfigRC = 2
 const FailedRetrievingData = 3
 const FailedCalculatingWallet = 3
 const WarchestConfigEnv = "WARCHEST_CONFIG"
+const CbApiKey = "CB_API_KEY"
+const CbApiSecret = "CB_API_SECRET"
 
 func main() {
 
@@ -27,7 +31,13 @@ func main() {
 		os.Exit(FailedLoadConfigRC)
 	}
 
-	fmt.Println("Updating crypto wallet")
+	apiKey := os.Getenv(CbApiKey)
+	apiSecret := os.Getenv(CbApiSecret)
+	cbAuth := auth.CBAuth{apiKey, apiSecret}
+
+	userId, nil := query.CBRetrieveUserID(cbAuth)
+
+	fmt.Printf("Updating crypto wallet for id: %s\n", userId)
 	localWallet := warchestConfig.ToWallet()
 
 	netProfit, err := wallet.CalculateNetProfit(localWallet)
