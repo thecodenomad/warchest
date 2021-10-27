@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"github.com/stretchr/testify/assert"
-	"strconv"
 	"testing"
 	"time"
 )
@@ -21,17 +20,16 @@ func TestCBAuth(t *testing.T) {
 
 	// 30 second threshold, otherwise considered expired
 	timestamp := int(time.Now().Unix())
-	actualResp := CBAuth(testAPIKey, testSecretKey, requestMethod, requestBody, requestPath, timestamp)
+	auth := CBAuth{testAPIKey, testSecretKey, requestMethod, requestBody, requestPath, timestamp}
 
-	t.Run("Test return contents", func(t *testing.T) {
-		responseTimestamp, _ := strconv.Atoi(actualResp[cbaccess_timestamp])
+	// Generate NewAuthMap
+	actualResp := auth.NewAuthMap()
 
+	t.Run("Test return contents exist", func(t *testing.T) {
 		// Make sure the required headers exist
 		assert.Contains(t, actualResp, cbaccess_key)
 		assert.Contains(t, actualResp, cbaccess_sign)
 		assert.Contains(t, actualResp, cbaccess_timestamp)
-		assert.Equal(t, timestamp, responseTimestamp, "timestamps should be the same!")
-
 	})
 
 	t.Run("Validate signature was calculated correctly", func(t *testing.T) {

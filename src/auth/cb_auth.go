@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"time"
 )
 
 var (
@@ -12,6 +13,16 @@ var (
 	cbaccess_sign      = "CB-ACCESS-SIGN"
 	cbaccess_timestamp = "CB-ACCESS-TIMESTAMP"
 )
+
+type CBAuth struct {
+	// private!
+	apiKey        string
+	apiSecret     string
+	requestMethod string
+	requestBody   string
+	requestPath   string
+	timestamp     int
+}
 
 // Ref: https://developers.coinbase.com/docs/wallet/api-key-authentication
 // All REST requests must contain the following headers:
@@ -44,19 +55,22 @@ var (
 // the API server time if you believe there may be a time skew between your server and the API
 // servers.
 
-func CBAuth(apiKey, apiSecret, requestMethod, requestBody, requestPath string, timestamp int) map[string]string {
+func (c *CBAuth) NewAuthMap() map[string]string {
 
 	// Setup return object
 	headers := map[string]string{}
 
+	// Generate new timestamp for this call
+	timestamp := int(time.Now().Unix())
+
 	// Sign at the dotted line...
-	sigText := "%d" + requestMethod + requestPath + requestBody
-	h := hmac.New(sha256.New, []byte(apiSecret))
+	sigText := "%d" + c.requestMethod + c.requestPath + c.requestBody
+	h := hmac.New(sha256.New, []byte(c.apiSecret))
 	h.Write([]byte(sigText))
 	signature := hex.EncodeToString(h.Sum(nil))
 
 	// Apply the things
-	headers[cbaccess_key] = apiKey
+	headers[cbaccess_key] = c.apiKey
 	headers[cbaccess_timestamp] = fmt.Sprintf("%d", timestamp)
 	headers[cbaccess_sign] = signature
 
