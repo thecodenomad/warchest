@@ -10,7 +10,7 @@ import (
 func TestRetrieveCoinData(t *testing.T) {
 	t.Run("Happy Path", func(t *testing.T) {
 		coin := "BTC"
-		coinInfo, err := RetrieveCoinData(coin)
+		coinInfo, err := CBRetrieveCoinData(coin)
 		assert.Nil(t, err, "failed to retrieve rates")
 		assert.Equal(t, coin, coinInfo.Currency, "values should be the same!")
 		assert.NotEqual(t, CoinInfo{}, coinInfo, "coinInfo object should not be empty")
@@ -26,7 +26,7 @@ func TestRetrieveCoinData(t *testing.T) {
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
 
-		coinInfo, err := RetrieveCoinData(symbol)
+		coinInfo, err := CBRetrieveCoinData(symbol)
 
 		// Stop mock
 		httpmock.GetTotalCallCount()
@@ -51,7 +51,7 @@ func TestRetrieveCoinData(t *testing.T) {
 			`{bad json and stuff}`)
 		httpmock.RegisterResponder("GET", url, mockedResponse)
 
-		coinInfo, err := RetrieveCoinData(symbol)
+		coinInfo, err := CBRetrieveCoinData(symbol)
 
 		// Stop mock
 		httpmock.GetTotalCallCount()

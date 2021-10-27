@@ -25,8 +25,9 @@ type Rates struct {
 
 //type Wallet map[string]map[string]float64
 
-// RetrieveCoinData will return exchange rates for a given Crypto Curraency Symbol
-func RetrieveCoinData(symbol string) (CoinInfo, error) {
+// CBRetrieveCoinData will return exchange rates for a given Crypto Currency Symbol
+// TODO: Change the structure so that this is a struct method
+func CBRetrieveCoinData(symbol string) (CoinInfo, error) {
 
 	url := ExchangeRateUrl + "?currency=" + symbol
 	resp, err := http.Get(url)

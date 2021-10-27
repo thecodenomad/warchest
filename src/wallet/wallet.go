@@ -34,7 +34,7 @@ type CoinTransaction struct {
 //UpdateRates updates a coin's current exchange rate
 func (c *Coin) UpdateRates() {
 
-	coinInfo, err := query.RetrieveCoinData(c.CoinSymbol)
+	coinInfo, err := query.CBRetrieveCoinData(c.CoinSymbol)
 	if err != nil {
 		log.Printf("Failed to retrieve market rates for %s\n", c.CoinSymbol)
 		// Reset instead of erroring
