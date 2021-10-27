@@ -1,13 +1,17 @@
 package query
 
 import (
-	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/h2non/gock.v1"
 	"testing"
+	"warchest/src/auth"
 )
 
 // TODO: should be using a mock (spy) so we aren't making http requests
 func TestRetrieveCoinData(t *testing.T) {
+	// Test variables
+	symbol := "ETH"
+
 	t.Run("Happy Path", func(t *testing.T) {
 		coin := "BTC"
 		coinInfo, err := CBRetrieveCoinData(coin)
@@ -19,63 +23,68 @@ func TestRetrieveCoinData(t *testing.T) {
 
 	t.Run("Rainy Day connectivity!", func(t *testing.T) {
 
-		// Test variables
-		symbol := "ETH"
-
-		// Setup capture for HTTP call
-		httpmock.Activate()
-		defer httpmock.DeactivateAndReset()
+		// Establish Mock
+		defer gock.Off()
+		gock.New(CBBaseURL).
+			Get(CBExchangeRateUrl).
+			Reply(500).
+			BodyString(`nada`)
 
 		coinInfo, err := CBRetrieveCoinData(symbol)
 
-		// Stop mock
-		httpmock.GetTotalCallCount()
-
 		// There should have been a connection error
 		assert.NotNil(t, err, "This call should have produced a connection error")
-
-		// Empty CoinInfo object at this point
 		assert.Equal(t, CoinInfo{}, coinInfo)
 	})
 
 	t.Run("Malformed JSON response", func(t *testing.T) {
 
-		// Test variables
-		symbol := "ETH"
-		url := CBExchangeRateUrl + "?currency=" + symbol
-
-		// Setup capture for HTTP call
-		httpmock.Activate()
-		defer httpmock.DeactivateAndReset()
-		mockedResponse := httpmock.NewStringResponder(200,
-			`{bad json and stuff}`)
-		httpmock.RegisterResponder("GET", url, mockedResponse)
+		// Establish Mock
+		defer gock.Off()
+		gock.New(CBBaseURL).
+			Get(CBExchangeRateUrl).
+			Reply(200).
+			BodyString(`[asdf,[],!}`)
 
 		coinInfo, err := CBRetrieveCoinData(symbol)
 
-		// Stop mock
-		httpmock.GetTotalCallCount()
-
 		// There should have been a connection error
 		assert.NotNil(t, err, "This call should have produced a JSON parse error")
-
-		// Empty CoinInfo object at this point
 		assert.Equal(t, CoinInfo{}, coinInfo)
 	})
+
+	// TODO: Still having problems forcing failure with io.ReadAll need to look into this
+	t.Run("Failure to read response body check", func(t *testing.T) {
+
+		// Establish Mock
+		defer gock.Off()
+		gock.New(CBBaseURL).
+			Get(CBExchangeRateUrl).
+			Reply(200).
+			SetHeader("Content-Length", "10")
+
+		coinInfo, err := CBRetrieveCoinData(symbol)
+
+		assert.NotNil(t, err, "This call should have produced a read error for the response body")
+		assert.Equal(t, CoinInfo{}, coinInfo)
+	})
+
 }
 
-//func TestCBRetrieveUserID(t *testing.T) {
-//
-//	cbAuth := auth.CBAuth{}
-//	url := CBUserUrl + CBUserUrl
-//
-//	httpmock.Activate()
-//	defer httpmock.DeactivateAndReset()
-//	mockedResponse := httpmock.NewStringResponder(200,
-//		`	{ "data": { "id": "9da7a204-544e-5fd1-9a12-61176c5d4cd8" } }`)
-//	httpmock.RegisterResponder("GET", url, mockedResponse)
-//
-//	actualResp, _ := CBRetrieveUserID(cbAuth)
-//	expectedResp := "9da7a204-544e-5fd1-9a12-61176c5d4cd8"
-//	assert.Equal(t, expectedResp, actualResp)
-//}
+func TestCBRetrieveUserID(t *testing.T) {
+
+	// Setup Test specifics
+	cbAuth := auth.CBAuth{}
+	json := `{ "data": { "id": "9da7a204-544e-5fd1-9a12-61176c5d4cd8" } }`
+
+	// Estbalish Mock
+	defer gock.Off()
+	gock.New(CBBaseURL).
+		Get(CBUserUrl).
+		Reply(200).
+		BodyString(json)
+
+	actualResp, _ := CBRetrieveUserID(cbAuth)
+	expectedResp := "9da7a204-544e-5fd1-9a12-61176c5d4cd8"
+	assert.Equal(t, expectedResp, actualResp)
+}

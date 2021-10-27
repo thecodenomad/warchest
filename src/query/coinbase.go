@@ -2,6 +2,7 @@ package query
 
 import (
 	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"warchest/src/auth"
@@ -47,21 +48,28 @@ type CBUserResponse struct {
 // CBRetrieveCoinData will return exchange rates for a given Crypto Currency Symbol
 // TODO: Change the structure so that this is a struct method
 func CBRetrieveCoinData(symbol string) (CoinInfo, error) {
-
 	url := CBBaseURL + CBExchangeRateUrl + "?currency=" + symbol
 	resp, err := http.Get(url)
 
-	//TODO: Create custom error for failure to decode
+	//TODO: Create custom error for connectivity failures
 	if err != nil {
+		log.Printf("Hit error on retrieval: %s", err)
 		return CoinInfo{}, err
 	}
 	defer resp.Body.Close()
 
-	var cResp CoinInfoResponse
+	cResp := CoinInfoResponse{}
 
-	//TODO: Create custom error for failure to decode
-	if err := json.NewDecoder(resp.Body).Decode(&cResp); err != nil {
-		log.Printf("error: %s", err)
+	//TODO: Create custom error for failures to read respBody as a string
+	bodyAsStr, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("Failed to read body of error: %s", err)
+		return CoinInfo{}, err
+	}
+
+	//TODO: Create custom error for unmarshalling issues
+	if err := json.Unmarshal([]byte(bodyAsStr), &cResp); err != nil {
+		log.Printf("Failed to unmarshall the bits: %s", err)
 		return CoinInfo{}, err
 	}
 
@@ -71,9 +79,8 @@ func CBRetrieveCoinData(symbol string) (CoinInfo, error) {
 func CBRetrieveUserID(cbAuth auth.CBAuth) (string, error) {
 
 	url := CBBaseURL + CBUserUrl
+	log.Printf("URL: " + url)
 
-	// Create client
-	client := &http.Client{}
 	authHeaders := cbAuth.NewAuthMap("GET", "", CBUserUrl)
 	req, err := http.NewRequest("GET", url, nil)
 
@@ -84,7 +91,7 @@ func CBRetrieveUserID(cbAuth auth.CBAuth) (string, error) {
 	}
 
 	// Retrieve response
-	resp, err := client.Do(req)
+	resp, err := http.DefaultClient.Do(req)
 
 	//TODO: Create custom error for failure to decode
 	if err != nil {
@@ -106,7 +113,7 @@ func CBRetrieveUserID(cbAuth auth.CBAuth) (string, error) {
 }
 
 // CBRetrieveTransactions will return transactions for all coins the apikey has access to
-func CBRetrieveTransactions(auth auth.CBAuth) []CBTransaction {
-
-	return []CBTransaction{}
-}
+//func CBRetrieveTransactions(auth auth.CBAuth) []CBTransaction {
+//
+//	return []CBTransaction{}
+//}
