@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 	"warchest/src/auth"
 )
 
@@ -79,7 +80,6 @@ func CBRetrieveCoinData(symbol string) (CoinInfo, error) {
 func CBRetrieveUserID(cbAuth auth.CBAuth) (string, error) {
 
 	url := CBBaseURL + CBUserUrl
-	log.Printf("URL: " + url)
 
 	authHeaders := cbAuth.NewAuthMap("GET", "", CBUserUrl)
 	req, err := http.NewRequest("GET", url, nil)
@@ -90,8 +90,11 @@ func CBRetrieveUserID(cbAuth auth.CBAuth) (string, error) {
 		req.Header.Add(key, value)
 	}
 
+	client := http.Client{
+		Timeout: time.Second * 10,
+	}
 	// Retrieve response
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := client.Do(req)
 
 	//TODO: Create custom error for failure to decode
 	if err != nil {
@@ -101,14 +104,16 @@ func CBRetrieveUserID(cbAuth auth.CBAuth) (string, error) {
 	}
 	defer resp.Body.Close()
 
+	bodyAsStr, err := io.ReadAll(resp.Body)
 	userResp := CBUserResponse{}
 
 	//TODO: Create custom error for failure to decode
-	if err := json.NewDecoder(resp.Body).Decode(&userResp); err != nil {
+	if err := json.Unmarshal([]byte(bodyAsStr), &userResp); err != nil {
 		log.Printf("error: %s", err)
 		return "", err
 	}
 
+	log.Printf("Made it to the end")
 	return userResp.Data.Id, nil
 }
 

@@ -1,6 +1,7 @@
 package query
 
 import (
+	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/h2non/gock.v1"
 	"testing"
@@ -13,22 +14,30 @@ func TestRetrieveCoinData(t *testing.T) {
 	symbol := "ETH"
 
 	t.Run("Happy Path", func(t *testing.T) {
-		coin := "BTC"
-		coinInfo, err := CBRetrieveCoinData(coin)
+
+		json := `{"data": { "currency": "ETH", "rates": {"USD": "12.0", "EUR": "11.0", "GBP": "10.0"}}}`
+		// Establish Mock
+		defer gock.Off()
+		gock.New(CBBaseURL).
+			Get(CBExchangeRateUrl).
+			Reply(200).
+			BodyString(json)
+
+		coinInfo, err := CBRetrieveCoinData(symbol)
 		assert.Nil(t, err, "failed to retrieve rates")
-		assert.Equal(t, coin, coinInfo.Currency, "values should be the same!")
+		assert.Equal(t, symbol, coinInfo.Currency, "values should be the same!")
+		assert.Equal(t, 12.00, coinInfo.ExchangeRates.USD, "Should be the same")
+		assert.Equal(t, 11.00, coinInfo.ExchangeRates.EUR, "Should be the same")
+		assert.Equal(t, 10.00, coinInfo.ExchangeRates.GBP, "Should be the same")
 		assert.NotEqual(t, CoinInfo{}, coinInfo, "coinInfo object should not be empty")
 		assert.NotNil(t, coinInfo.ExchangeRates, "no rates found!")
 	})
 
 	t.Run("Rainy Day connectivity!", func(t *testing.T) {
 
-		// Establish Mock
-		defer gock.Off()
-		gock.New(CBBaseURL).
-			Get(CBExchangeRateUrl).
-			Reply(500).
-			BodyString(`nada`)
+		// Easier to do with httpmock, default behavior is to return a connection error
+		httpmock.Activate()
+		defer httpmock.DeactivateAndReset()
 
 		coinInfo, err := CBRetrieveCoinData(symbol)
 
@@ -73,18 +82,37 @@ func TestRetrieveCoinData(t *testing.T) {
 
 func TestCBRetrieveUserID(t *testing.T) {
 
-	// Setup Test specifics
-	cbAuth := auth.CBAuth{}
-	json := `{ "data": { "id": "9da7a204-544e-5fd1-9a12-61176c5d4cd8" } }`
+	t.Run("Happy Path", func(t *testing.T) {
+		// Setup Test specifics
+		cbAuth := auth.CBAuth{}
+		json := `{ "data": { "id": "9da7a204-544e-5fd1-9a12-61176c5d4cd8" } }`
 
-	// Estbalish Mock
-	defer gock.Off()
-	gock.New(CBBaseURL).
-		Get(CBUserUrl).
-		Reply(200).
-		BodyString(json)
+		// Estbalish Mock
+		defer gock.Off()
+		gock.New(CBBaseURL).
+			Get(CBUserUrl).
+			Reply(200).
+			BodyString(json)
 
-	actualResp, _ := CBRetrieveUserID(cbAuth)
-	expectedResp := "9da7a204-544e-5fd1-9a12-61176c5d4cd8"
-	assert.Equal(t, expectedResp, actualResp)
+		actualResp, _ := CBRetrieveUserID(cbAuth)
+		expectedResp := "9da7a204-544e-5fd1-9a12-61176c5d4cd8"
+		assert.Equal(t, expectedResp, actualResp)
+	})
+
+	t.Run("Cloudy Path", func(t *testing.T) {
+		// Setup Test specifics
+		cbAuth := auth.CBAuth{}
+		json := `{unparseable,,,}`
+
+		// Estbalish Mock
+		defer gock.Off()
+		gock.New(CBBaseURL).
+			Get(CBUserUrl).
+			Reply(200).
+			BodyString(json)
+
+		actualResp, _ := CBRetrieveUserID(cbAuth)
+		expectedResp := ""
+		assert.Equal(t, expectedResp, actualResp)
+	})
 }
