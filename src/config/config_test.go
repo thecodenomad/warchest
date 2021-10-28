@@ -5,9 +5,14 @@ import (
 	"testing"
 )
 
-func TestLoadConfig(t *testing.T) {
+func TestConfig(t *testing.T) {
+
+	// Happy Path
 	t.Run("Test Valid Config", func(t *testing.T) {
-		tmpConfig, err := LoadConfig("./testdata/CoinConfig.json")
+
+		testConfigFile := ConfigFile{Filepath: "./testdata/CoinConfig.json"}
+		tmpConfig, err := testConfigFile.ToConfig()
+
 		assert.Nil(t, err, "Should not fail loading string")
 		assert.Equal(t, len(tmpConfig.Transactions), 2)
 		assert.Equal(t, tmpConfig.Transactions[0].CoinSymbol, "ETH")
@@ -28,31 +33,14 @@ func TestLoadConfig(t *testing.T) {
 		for _, tt := range valueTests {
 			assert.Equal(t, tt.expectedValue, tt.actualValue)
 		}
-	})
 
-	t.Run("Test non-existent filepath", func(t *testing.T) {
-		tmpConfig, err := LoadConfig("./testdata/Bogus.json")
-		assert.Equal(t, tmpConfig, Config{}, "Config not empty!")
-		assert.Error(t, err, "should have raised an error")
-		assert.Equal(t, ErrFileNotFound, err, "should have raised a file not found error")
-	})
-
-	//t.Run("Test permissions issues (simulate corruption)", func(t *testing.T) {
-	//	tmpConfig, err := LoadConfig("./testdata/Unreadable.json")
-	//	assert.Equal(t, tmpConfig, Config{}, "Config not empty!")
-	//	assert.Error(t, err, "should have raised an error")
-	//	assert.Equal(t, ErrReadingFile, err, "should have raised a read error")
-	//})
-
-	t.Run("Test malformed JSON", func(t *testing.T) {
-		tmpConfig, err := LoadConfig("./testdata/Malformed.json")
-		assert.Equal(t, tmpConfig, Config{}, "Config not empty!")
-		assert.Error(t, err, "should have raised an error")
-		assert.Equal(t, ErrOnUnMarshall, err, "should have raised a malformed error")
+		newConfig, err := testConfigFile.ToConfig()
+		assert.NotNil(t, newConfig, "should have been same config as initially loaded")
 	})
 
 	t.Run("Convert config to wallet", func(t *testing.T) {
-		tmpConfig, _ := LoadConfig("./testdata/CoinConfig.json")
+		testConfigFile := ConfigFile{Filepath: "./testdata/CoinConfig.json"}
+		tmpConfig, _ := testConfigFile.ToConfig()
 		wallet := tmpConfig.ToWallet()
 		assert.Equal(t, len(wallet.Coins), 2, "Failed to have correct number of coins")
 
@@ -60,6 +48,46 @@ func TestLoadConfig(t *testing.T) {
 		for _, coin := range wallet.Coins {
 			assert.Equal(t, len(coin.Transactions), 1, "Failed to have correct number of transactions")
 		}
+	})
+
+	// Cloudy Path
+	t.Run("Test file existence", func(t *testing.T) {
+
+		// Test non existent file
+		testConfigFile := ConfigFile{Filepath: "./testdata/Bogus.json"}
+		assert.False(t, testConfigFile.Exists(), "This file should not exist")
+
+		// Test existing file
+		testConfigFile = ConfigFile{Filepath: "./testdata/Malformed.json"}
+		assert.True(t, testConfigFile.Exists(), "This file should exist")
+
+	})
+
+	t.Run("Test malformed JSON", func(t *testing.T) {
+		testConfigFile := ConfigFile{Filepath: "./testdata/Malformed.json"}
+		tmpConfig, err := testConfigFile.Parse()
+
+		assert.Equal(t, tmpConfig, Config{}, "Config not empty!")
+		assert.Error(t, err, "should have raised an error")
+		assert.Equal(t, ErrOnUnMarshall, err, "should have raised a malformed error")
+	})
+
+	t.Run("Test file read problems", func(t *testing.T) {
+		testConfigFile := ConfigFile{Filepath: "./testdata/Bogus.json"}
+		byteValue, err := testConfigFile.Load()
+
+		assert.Empty(t, byteValue, "should be empty")
+		assert.Error(t, err, "should have raised an error")
+		assert.Equal(t, ErrReadingFile, err, "should have raised a read error")
+	})
+
+	t.Run("Test To Config error handling", func(t *testing.T) {
+
+		// Existence check
+		testConfigFile := ConfigFile{Filepath: "./testdata/Bogus.json"}
+		_, err := testConfigFile.ToConfig()
+		assert.NotNil(t, ErrFileNotFound, err, "this should have been a file existence error")
+
 	})
 
 	// addmittingly overkill, and borderline useful, but it makes for full coverage!
@@ -78,4 +106,41 @@ func TestLoadConfig(t *testing.T) {
 			assert.Equal(t, tt.expectedValue, tt.actualValue)
 		}
 	})
+}
+
+//
+// Mocks
+///////////////////////
+
+type MockConfigParser interface {
+	Load() ([]byte, error)
+	Parse() (Config, error)
+}
+
+type MockConfigLoader interface {
+	ToConfig() (Config, error)
+}
+
+type MockConfigReader interface {
+	Load() ([]byte, error)
+}
+
+type MockConfigFile struct {
+	Filepath string
+}
+
+func (m *MockConfigFile) Exits() bool {
+	return false
+}
+
+func (m *MockConfigFile) Load() ([]byte, error) {
+	return nil, ErrReadingFile
+}
+
+func (m *MockConfigFile) ToConfig() (Config, error) {
+	_, err := m.Load()
+	if err != nil {
+		return Config{}, ErrReadingFile
+	}
+	return Config{}, ErrReadingFile
 }

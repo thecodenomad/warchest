@@ -29,4 +29,4 @@ deploy: build
 	# docker status
 
 test:
-	go test ./...
+	go test ./... -v

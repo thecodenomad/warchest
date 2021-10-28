@@ -32,9 +32,9 @@ type CoinTransaction struct {
 }
 
 //UpdateRates updates a coin's current exchange rate
-func (c *Coin) UpdateRates() {
+func (c *Coin) UpdateRates(client query.HttpClient) {
 
-	coinInfo, err := query.CBRetrieveCoinData(c.CoinSymbol)
+	coinInfo, err := query.CBRetrieveCoinData(c.CoinSymbol, client)
 	if err != nil {
 		log.Printf("Failed to retrieve market rates for %s\n", c.CoinSymbol)
 		// Reset instead of erroring
@@ -73,9 +73,9 @@ func (c *Coin) UpdateProfit() {
 }
 
 //Update runs all internal updates to get the latest value of a particular coin in a wallet
-func (c *Coin) Update() {
+func (c *Coin) Update(client query.HttpClient) {
 	c.UpdateCost()
-	c.UpdateRates()
+	c.UpdateRates(client)
 	c.UpdateProfit()
 }
 
@@ -89,13 +89,13 @@ func (c *Coin) Banner() {
 }
 
 // CalculateNetProfit will calculate the total profit for the coins in the provided Wallet
-func CalculateNetProfit(wallet Wallet) (float64, error) {
+func CalculateNetProfit(wallet Wallet, client query.HttpClient) (float64, error) {
 	netProfit := 0.0
 
 	log.Printf("There are %d coin(s) in your wallet, calculating...\n", len(wallet.Coins))
 	for _, coin := range wallet.Coins {
 		// Make sure we have the latest rates
-		coin.Update()
+		coin.Update(client)
 
 		// Present stats for coin
 		coin.Banner()
