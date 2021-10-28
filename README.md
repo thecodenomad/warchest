@@ -42,6 +42,9 @@ Once the config is created, it can be specified at execution time
 
 `WARCHEST_CONFIG=<your config filepath> ./warchest`
 
+(The intention was to add this to your path as the name hasn't changd yet, but these are effectively
+the transactions. Command line options for handling this better are in the works.)
+
 Ex.
 
 ```
