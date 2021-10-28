@@ -5,7 +5,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"time"
 	"warchest/src/auth"
 )
 
@@ -48,9 +47,13 @@ type CBUserResponse struct {
 
 // CBRetrieveCoinData will return exchange rates for a given Crypto Currency Symbol
 // TODO: Change the structure so that this is a struct method
-func CBRetrieveCoinData(symbol string) (CoinInfo, error) {
+func CBRetrieveCoinData(symbol string, client http.Client) (CoinInfo, error) {
 	url := CBBaseURL + CBExchangeRateUrl + "?currency=" + symbol
-	resp, err := http.Get(url)
+
+	req, err := http.NewRequest("GET", url, nil)
+
+	// Retrieve response
+	resp, err := client.Do(req)
 
 	//TODO: Create custom error for connectivity failures
 	if err != nil {
@@ -77,7 +80,7 @@ func CBRetrieveCoinData(symbol string) (CoinInfo, error) {
 	return cResp.Data, err
 }
 
-func CBRetrieveUserID(cbAuth auth.CBAuth) (string, error) {
+func CBRetrieveUserID(cbAuth auth.CBAuth, client http.Client) (string, error) {
 
 	url := CBBaseURL + CBUserUrl
 
@@ -90,9 +93,6 @@ func CBRetrieveUserID(cbAuth auth.CBAuth) (string, error) {
 		req.Header.Add(key, value)
 	}
 
-	client := http.Client{
-		Timeout: time.Second * 10,
-	}
 	// Retrieve response
 	resp, err := client.Do(req)
 
@@ -121,4 +121,8 @@ func CBRetrieveUserID(cbAuth auth.CBAuth) (string, error) {
 //func CBRetrieveTransactions(auth auth.CBAuth) []CBTransaction {
 //
 //	return []CBTransaction{}
+//}
+//
+//client := http.Client{
+//Timeout: time.Second * 10,
 //}

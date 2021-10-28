@@ -3,7 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
+	"time"
 	"warchest/src/auth"
 	"warchest/src/config"
 	"warchest/src/query"
@@ -20,6 +22,9 @@ const CbApiSecret = "CB_API_SECRET"
 func main() {
 
 	serverPtr := flag.Bool("server", false, "whether or not to start server (default port: 8080")
+	client := http.Client{
+		Timeout: time.Second * 10,
+	}
 
 	fmt.Println("Server enabled:", *serverPtr)
 
@@ -35,12 +40,12 @@ func main() {
 	apiSecret := os.Getenv(CbApiSecret)
 	cbAuth := auth.CBAuth{apiKey, apiSecret}
 
-	userId, nil := query.CBRetrieveUserID(cbAuth)
+	userId, nil := query.CBRetrieveUserID(cbAuth, client)
 
 	fmt.Printf("Updating crypto wallet for id: %s\n", userId)
 	localWallet := warchestConfig.ToWallet()
 
-	netProfit, err := wallet.CalculateNetProfit(localWallet)
+	netProfit, err := wallet.CalculateNetProfit(localWallet, client)
 	if err != nil {
 		fmt.Printf("Failed to calculate Wallet's Profit: %s\n", err)
 		os.Exit(FailedCalculatingWallet)

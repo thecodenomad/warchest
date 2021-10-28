@@ -4,7 +4,9 @@ import (
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/h2non/gock.v1"
+	"net/http"
 	"testing"
+	"time"
 	"warchest/src/auth"
 )
 
@@ -12,6 +14,10 @@ import (
 func TestRetrieveCoinData(t *testing.T) {
 	// Test variables
 	symbol := "ETH"
+
+	client := http.Client{
+		Timeout: time.Second * 10,
+	}
 
 	t.Run("Happy Path", func(t *testing.T) {
 
@@ -23,7 +29,7 @@ func TestRetrieveCoinData(t *testing.T) {
 			Reply(200).
 			BodyString(json)
 
-		coinInfo, err := CBRetrieveCoinData(symbol)
+		coinInfo, err := CBRetrieveCoinData(symbol, client)
 		assert.Nil(t, err, "failed to retrieve rates")
 		assert.Equal(t, symbol, coinInfo.Currency, "values should be the same!")
 		assert.Equal(t, 12.00, coinInfo.ExchangeRates.USD, "Should be the same")
@@ -39,7 +45,7 @@ func TestRetrieveCoinData(t *testing.T) {
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
 
-		coinInfo, err := CBRetrieveCoinData(symbol)
+		coinInfo, err := CBRetrieveCoinData(symbol, client)
 
 		// There should have been a connection error
 		assert.NotNil(t, err, "This call should have produced a connection error")
@@ -55,7 +61,7 @@ func TestRetrieveCoinData(t *testing.T) {
 			Reply(200).
 			BodyString(`[asdf,[],!}`)
 
-		coinInfo, err := CBRetrieveCoinData(symbol)
+		coinInfo, err := CBRetrieveCoinData(symbol, client)
 
 		// There should have been a connection error
 		assert.NotNil(t, err, "This call should have produced a JSON parse error")
@@ -72,7 +78,7 @@ func TestRetrieveCoinData(t *testing.T) {
 			Reply(200).
 			SetHeader("Content-Length", "10")
 
-		coinInfo, err := CBRetrieveCoinData(symbol)
+		coinInfo, err := CBRetrieveCoinData(symbol, client)
 
 		assert.NotNil(t, err, "This call should have produced a read error for the response body")
 		assert.Equal(t, CoinInfo{}, coinInfo)
@@ -81,6 +87,10 @@ func TestRetrieveCoinData(t *testing.T) {
 }
 
 func TestCBRetrieveUserID(t *testing.T) {
+
+	client := http.Client{
+		Timeout: time.Second * 10,
+	}
 
 	t.Run("Happy Path", func(t *testing.T) {
 		// Setup Test specifics
@@ -94,7 +104,7 @@ func TestCBRetrieveUserID(t *testing.T) {
 			Reply(200).
 			BodyString(json)
 
-		actualResp, _ := CBRetrieveUserID(cbAuth)
+		actualResp, _ := CBRetrieveUserID(cbAuth, client)
 		expectedResp := "9da7a204-544e-5fd1-9a12-61176c5d4cd8"
 		assert.Equal(t, expectedResp, actualResp)
 	})
@@ -111,7 +121,7 @@ func TestCBRetrieveUserID(t *testing.T) {
 			Reply(200).
 			BodyString(json)
 
-		actualResp, _ := CBRetrieveUserID(cbAuth)
+		actualResp, _ := CBRetrieveUserID(cbAuth, client)
 		expectedResp := ""
 		assert.Equal(t, expectedResp, actualResp)
 	})

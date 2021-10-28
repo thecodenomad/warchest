@@ -5,7 +5,9 @@ import (
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/h2non/gock.v1"
+	"net/http"
 	"testing"
+	"time"
 	"warchest/src/query"
 )
 
@@ -29,6 +31,10 @@ func TestCalculateCoinProfit(t *testing.T) {
 // This is one function purely for the coverage stats ;) for 'Update' method
 func TestCoin_Update(t *testing.T) {
 
+	client := http.Client{
+		Timeout: time.Second * 10,
+	}
+
 	// Establish Mock
 	json := `{"data":{"currency":"ETH","rates":{"USD":"12.99","EUR":"11.99","GBP": "10.99"}}}`
 	defer gock.Off()
@@ -50,7 +56,7 @@ func TestCoin_Update(t *testing.T) {
 	expectedProfit := expectedRate*testAmount - expectedCost
 
 	// Do the thing (ie. run the 3 update methods)
-	coin.Update()
+	coin.Update(client)
 
 	// Make sure the algo translated the response correctly
 	assert.Equal(t, expectedRate, coin.CurrentRateUSD, "should be the same")
@@ -59,6 +65,10 @@ func TestCoin_Update(t *testing.T) {
 }
 
 func TestCoin_UpdateRates_Cloudy(t *testing.T) {
+
+	client := http.Client{
+		Timeout: time.Second * 10,
+	}
 
 	// Force request failure
 	httpmock.Activate()
@@ -71,13 +81,17 @@ func TestCoin_UpdateRates_Cloudy(t *testing.T) {
 
 	// Update the rates, but since there is an error we should _silently_ ignore and leave the rate at 0
 	// TODO: better error handling around requests maybe needed
-	coin.UpdateRates()
+	coin.UpdateRates(client)
 
 	// Verify method corralled the bits
 	assert.Equal(t, expectedResp, coin.CurrentRateUSD, "should be the same")
 }
 
 func TestCalculateNetProfit(t *testing.T) {
+
+	client := http.Client{
+		Timeout: time.Second * 10,
+	}
 
 	// Test variables, pedantic for extensibility
 	testAmount := 1.0
@@ -100,7 +114,7 @@ func TestCalculateNetProfit(t *testing.T) {
 		BodyString(json)
 
 	// Do the things then set threshold for easier comparison of float values
-	actualResp, err := CalculateNetProfit(wallet)
+	actualResp, err := CalculateNetProfit(wallet, client)
 	actualProfit := fmt.Sprintf("%.6f", actualResp)
 
 	// Make sure there was only 1 call to the remote API, we don't want to be banned!
