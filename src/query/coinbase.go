@@ -5,13 +5,15 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
+	"time"
 	"warchest/src/auth"
 )
 
 const CBBaseURL = "https://api.coinbase.com"
 const CBExchangeRateUrl = "/v2/exchange-rates"
 const CBUserUrl = "/v2/user"
-const TransactionUrl = "/v2/accounts/:account_id/transactions"
+const CBTransactionUrl = "/v2/accounts/:account_id/transactions"
 
 var (
 	ErrDecoding     = QueryError("failed decoding response")
@@ -41,6 +43,51 @@ type Rates struct {
 }
 
 type CBTransaction struct {
+	Pagination struct {
+		EndingBefore  interface{} `json:"ending_before"`
+		StartingAfter interface{} `json:"starting_after"`
+		Limit         int         `json:"limit"`
+		Order         string      `json:"order"`
+		PreviousUri   interface{} `json:"previous_uri"`
+		NextUri       interface{} `json:"next_uri"`
+	} `json:"pagination"`
+	Data []struct {
+		Id     string `json:"id"`
+		Type   string `json:"type"`
+		Status string `json:"status"`
+		Amount struct {
+			Amount   string `json:"amount"`
+			Currency string `json:"currency"`
+		} `json:"amount"`
+		NativeAmount struct {
+			Amount   string `json:"amount"`
+			Currency string `json:"currency"`
+		} `json:"native_amount"`
+		Description  *string   `json:"description"`
+		CreatedAt    time.Time `json:"created_at"`
+		UpdatedAt    time.Time `json:"updated_at"`
+		Resource     string    `json:"resource"`
+		ResourcePath string    `json:"resource_path"`
+		Buy          struct {
+			Id           string `json:"id"`
+			Resource     string `json:"resource"`
+			ResourcePath string `json:"resource_path"`
+		} `json:"buy,omitempty"`
+		Details struct {
+			Title    string `json:"title"`
+			Subtitle string `json:"subtitle"`
+		} `json:"details"`
+		To struct {
+			Resource     string `json:"resource"`
+			Email        string `json:"email,omitempty"`
+			Id           string `json:"id,omitempty"`
+			ResourcePath string `json:"resource_path,omitempty"`
+		} `json:"to,omitempty"`
+		Network struct {
+			Status string `json:"status"`
+			Name   string `json:"name"`
+		} `json:"network,omitempty"`
+	} `json:"data"`
 }
 
 type CBUserResponse struct {
@@ -90,7 +137,7 @@ func CBRetrieveCoinData(symbol string, client HttpClient) (CoinInfo, error) {
 
 	//TODO: Create custom error for unmarshalling issues
 	if err := json.Unmarshal([]byte(bodyAsStr), &cResp); err != nil {
-		log.Printf("Failed to unmarshall the bits: %s", err)
+		log.Printf("%s", err)
 		return CoinInfo{}, ErrOnUnmarshall
 	}
 
@@ -132,11 +179,37 @@ func CBRetrieveUserID(cbAuth auth.CBAuth, client HttpClient) (string, error) {
 }
 
 // CBRetrieveTransactions will return transactions for all coins the apikey has access to
-//func CBRetrieveTransactions(auth auth.CBAuth) []CBTransaction {
-//
-//	return []CBTransaction{}
-//}
-//
-//client := http.Client{
-//Timeout: time.Second * 10,
-//}
+func CBRetrieveTransactions(accountID string, cbAuth auth.CBAuth, client HttpClient) ([]CBTransaction, error) {
+
+	transactionPath := strings.Replace(CBTransactionUrl, ":account_id", accountID, 0)
+
+	url := CBBaseURL + transactionPath
+
+	authHeaders := cbAuth.NewAuthMap("GET", "", CBUserUrl)
+	req, err := http.NewRequest("GET", url, nil)
+
+	// Set auth headers
+	for key, value := range authHeaders {
+		log.Printf("Setting %s to %s", key, value)
+		req.Header.Add(key, value)
+	}
+
+	// Retrieve response
+	resp, err := client.Do(req)
+
+	if err != nil {
+		log.Printf("%s", err)
+		return []CBTransaction{}, ErrDecoding
+	}
+	defer resp.Body.Close()
+
+	bodyAsStr, err := io.ReadAll(resp.Body)
+	var transactions []CBTransaction
+
+	if err := json.Unmarshal([]byte(bodyAsStr), &transactions); err != nil {
+		log.Printf("error: %s", err)
+		return []CBTransaction{}, ErrOnUnmarshall
+	}
+
+	return transactions, nil
+}
