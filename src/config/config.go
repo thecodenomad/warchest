@@ -15,6 +15,16 @@ var (
 	ErrOnUnMarshall  = ConfigurationError("Failed Unmarshalling JSON!")
 )
 
+func (c ConfigurationError) Error() string {
+	return string(c)
+}
+
+type ConfigFile struct {
+	Filepath       string
+	ByteValue      []byte
+	WarchestConfig Config
+}
+
 type ConfigurationError string
 
 type Config struct {
@@ -28,8 +38,69 @@ type Transaction struct {
 	TransactionFee    float64 `json:"transaction_fee"`
 }
 
-func (c ConfigurationError) Error() string {
-	return string(c)
+func (c *ConfigFile) Exists() bool {
+	// Check for files existence first
+	_, err := os.Stat(c.Filepath)
+	if errors.Is(err, os.ErrNotExist) {
+		return false
+	}
+	return true
+}
+
+func (c *ConfigFile) Load() ([]byte, error) {
+	// Try and load the config
+	jsonFile, err := os.Open(c.Filepath)
+	if err != nil {
+		return []byte{}, ErrReadingFile
+	}
+
+	// TODO: Properly handle this
+	defer jsonFile.Close()
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+	c.ByteValue = byteValue
+
+	return byteValue, nil
+}
+
+func (c *ConfigFile) Parse() (Config, error) {
+	// Unmarshall the JSON
+	tmpConfig := Config{}
+	err := json.Unmarshal(c.ByteValue, &tmpConfig)
+	if err != nil {
+		return Config{}, ErrOnUnMarshall
+	}
+	// Remove c.ByteValue so it's not duplicating space
+	c.ByteValue = []byte{}
+	return tmpConfig, err
+}
+
+func (c *ConfigFile) ToConfig() (Config, error) {
+
+	// Check if the file has already been loaded
+	if !c.Exists() {
+		return Config{}, ErrFileNotFound
+	}
+
+	// Load the byte stream into memory if it hasn't been
+	if len(c.ByteValue) == 0 {
+		_, err := c.Load()
+		if err != nil {
+			return Config{}, ErrReadingFile
+		}
+	}
+
+	// Unmarshall the JSON
+	if len(c.WarchestConfig.Transactions) == 0 {
+		tmpConfig, err := c.Parse()
+		if err != nil {
+			return Config{}, ErrOnUnMarshall
+		}
+		// Don't reload if we don't have to
+		c.WarchestConfig = tmpConfig
+		return tmpConfig, nil
+	}
+
+	return c.WarchestConfig, nil
 }
 
 func (c *Config) ToWallet() wallet.Wallet {
@@ -64,32 +135,4 @@ func (c *Config) ToWallet() wallet.Wallet {
 	}
 
 	return wallet
-}
-
-// LoadConfig loads the specified JSON file
-func LoadConfig(filepath string) (Config, error) {
-
-	// Check for files existence first
-	_, err := os.Stat(filepath)
-	if errors.Is(err, os.ErrNotExist) {
-		return Config{}, ErrFileNotFound
-	}
-
-	// Try and load the config
-	jsonFile, err := os.Open(filepath)
-	if err != nil {
-		return Config{}, ErrReadingFile
-	}
-
-	// TODO: Properly handle this
-	defer jsonFile.Close()
-	byteValue, _ := ioutil.ReadAll(jsonFile)
-
-	// Load the JSON
-	tmpConfig := Config{}
-	err = json.Unmarshal(byteValue, &tmpConfig)
-	if err != nil {
-		return Config{}, ErrOnUnMarshall
-	}
-	return tmpConfig, err
 }

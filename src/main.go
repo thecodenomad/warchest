@@ -25,12 +25,15 @@ func main() {
 	client := http.Client{
 		Timeout: time.Second * 10,
 	}
+	var absClient query.HttpClient
+	absClient = &client
 
 	fmt.Println("Server enabled:", *serverPtr)
 
-	configPath := os.Getenv(WarchestConfigEnv)
+	filepath := os.Getenv(WarchestConfigEnv)
+	configFile := config.ConfigFile{Filepath: filepath}
 
-	warchestConfig, err := config.LoadConfig(configPath)
+	warchestConfig, err := configFile.ToConfig()
 	if err != nil {
 		fmt.Printf("Failed loading config: %s\n", err)
 		os.Exit(FailedLoadConfigRC)
@@ -40,12 +43,12 @@ func main() {
 	apiSecret := os.Getenv(CbApiSecret)
 	cbAuth := auth.CBAuth{apiKey, apiSecret}
 
-	userId, nil := query.CBRetrieveUserID(cbAuth, client)
+	userId, nil := query.CBRetrieveUserID(cbAuth, absClient)
 
 	fmt.Printf("Updating crypto wallet for id: %s\n", userId)
 	localWallet := warchestConfig.ToWallet()
 
-	netProfit, err := wallet.CalculateNetProfit(localWallet, client)
+	netProfit, err := wallet.CalculateNetProfit(localWallet, absClient)
 	if err != nil {
 		fmt.Printf("Failed to calculate Wallet's Profit: %s\n", err)
 		os.Exit(FailedCalculatingWallet)

@@ -45,9 +45,14 @@ type CBUserResponse struct {
 	} `json:"data"`
 }
 
+// HttpClient interface is an internal interface useful for testability
+type HttpClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
 // CBRetrieveCoinData will return exchange rates for a given Crypto Currency Symbol
 // TODO: Change the structure so that this is a struct method
-func CBRetrieveCoinData(symbol string, client http.Client) (CoinInfo, error) {
+func CBRetrieveCoinData(symbol string, client HttpClient) (CoinInfo, error) {
 	url := CBBaseURL + CBExchangeRateUrl + "?currency=" + symbol
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -80,7 +85,7 @@ func CBRetrieveCoinData(symbol string, client http.Client) (CoinInfo, error) {
 	return cResp.Data, err
 }
 
-func CBRetrieveUserID(cbAuth auth.CBAuth, client http.Client) (string, error) {
+func CBRetrieveUserID(cbAuth auth.CBAuth, client HttpClient) (string, error) {
 
 	url := CBBaseURL + CBUserUrl
 

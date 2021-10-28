@@ -1,6 +1,7 @@
 package wallet
 
 import (
+	"errors"
 	"fmt"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
@@ -35,6 +36,9 @@ func TestCoin_Update(t *testing.T) {
 		Timeout: time.Second * 10,
 	}
 
+	var absClient query.HttpClient
+	absClient = &client
+
 	// Establish Mock
 	json := `{"data":{"currency":"ETH","rates":{"USD":"12.99","EUR":"11.99","GBP": "10.99"}}}`
 	defer gock.Off()
@@ -56,7 +60,7 @@ func TestCoin_Update(t *testing.T) {
 	expectedProfit := expectedRate*testAmount - expectedCost
 
 	// Do the thing (ie. run the 3 update methods)
-	coin.Update(client)
+	coin.Update(absClient)
 
 	// Make sure the algo translated the response correctly
 	assert.Equal(t, expectedRate, coin.CurrentRateUSD, "should be the same")
@@ -64,11 +68,15 @@ func TestCoin_Update(t *testing.T) {
 	assert.Equal(t, expectedProfit, coin.Profit, "should be the same")
 }
 
+type MockClient struct{}
+
+func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
+	return nil, errors.New("Test Connection Error")
+}
+
 func TestCoin_UpdateRates_Cloudy(t *testing.T) {
 
-	client := http.Client{
-		Timeout: time.Second * 10,
-	}
+	mockClient := &MockClient{}
 
 	// Force request failure
 	httpmock.Activate()
@@ -81,7 +89,7 @@ func TestCoin_UpdateRates_Cloudy(t *testing.T) {
 
 	// Update the rates, but since there is an error we should _silently_ ignore and leave the rate at 0
 	// TODO: better error handling around requests maybe needed
-	coin.UpdateRates(client)
+	coin.UpdateRates(mockClient)
 
 	// Verify method corralled the bits
 	assert.Equal(t, expectedResp, coin.CurrentRateUSD, "should be the same")
@@ -92,6 +100,8 @@ func TestCalculateNetProfit(t *testing.T) {
 	client := http.Client{
 		Timeout: time.Second * 10,
 	}
+	var absClient query.HttpClient
+	absClient = &client
 
 	// Test variables, pedantic for extensibility
 	testAmount := 1.0
@@ -114,7 +124,7 @@ func TestCalculateNetProfit(t *testing.T) {
 		BodyString(json)
 
 	// Do the things then set threshold for easier comparison of float values
-	actualResp, err := CalculateNetProfit(wallet, client)
+	actualResp, err := CalculateNetProfit(wallet, absClient)
 	actualProfit := fmt.Sprintf("%.6f", actualResp)
 
 	// Make sure there was only 1 call to the remote API, we don't want to be banned!

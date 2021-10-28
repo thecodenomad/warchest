@@ -3,7 +3,6 @@ package wallet
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"warchest/src/query"
 )
 
@@ -33,7 +32,7 @@ type CoinTransaction struct {
 }
 
 //UpdateRates updates a coin's current exchange rate
-func (c *Coin) UpdateRates(client http.Client) {
+func (c *Coin) UpdateRates(client query.HttpClient) {
 
 	coinInfo, err := query.CBRetrieveCoinData(c.CoinSymbol, client)
 	if err != nil {
@@ -74,7 +73,7 @@ func (c *Coin) UpdateProfit() {
 }
 
 //Update runs all internal updates to get the latest value of a particular coin in a wallet
-func (c *Coin) Update(client http.Client) {
+func (c *Coin) Update(client query.HttpClient) {
 	c.UpdateCost()
 	c.UpdateRates(client)
 	c.UpdateProfit()
@@ -90,7 +89,7 @@ func (c *Coin) Banner() {
 }
 
 // CalculateNetProfit will calculate the total profit for the coins in the provided Wallet
-func CalculateNetProfit(wallet Wallet, client http.Client) (float64, error) {
+func CalculateNetProfit(wallet Wallet, client query.HttpClient) (float64, error) {
 	netProfit := 0.0
 
 	log.Printf("There are %d coin(s) in your wallet, calculating...\n", len(wallet.Coins))

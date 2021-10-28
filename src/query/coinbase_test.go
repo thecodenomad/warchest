@@ -1,7 +1,7 @@
 package query
 
 import (
-	"github.com/jarcoal/httpmock"
+	"errors"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/h2non/gock.v1"
 	"net/http"
@@ -9,6 +9,12 @@ import (
 	"time"
 	"warchest/src/auth"
 )
+
+type MockClient struct{}
+
+func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
+	return nil, errors.New("Test Connection Error")
+}
 
 // TODO: should be using a mock (spy) so we aren't making http requests
 func TestRetrieveCoinData(t *testing.T) {
@@ -18,6 +24,9 @@ func TestRetrieveCoinData(t *testing.T) {
 	client := http.Client{
 		Timeout: time.Second * 10,
 	}
+
+	var absClient HttpClient
+	absClient = &client
 
 	t.Run("Happy Path", func(t *testing.T) {
 
@@ -29,7 +38,7 @@ func TestRetrieveCoinData(t *testing.T) {
 			Reply(200).
 			BodyString(json)
 
-		coinInfo, err := CBRetrieveCoinData(symbol, client)
+		coinInfo, err := CBRetrieveCoinData(symbol, absClient)
 		assert.Nil(t, err, "failed to retrieve rates")
 		assert.Equal(t, symbol, coinInfo.Currency, "values should be the same!")
 		assert.Equal(t, 12.00, coinInfo.ExchangeRates.USD, "Should be the same")
@@ -41,11 +50,9 @@ func TestRetrieveCoinData(t *testing.T) {
 
 	t.Run("Rainy Day connectivity!", func(t *testing.T) {
 
-		// Easier to do with httpmock, default behavior is to return a connection error
-		httpmock.Activate()
-		defer httpmock.DeactivateAndReset()
+		mockClient := &MockClient{}
 
-		coinInfo, err := CBRetrieveCoinData(symbol, client)
+		coinInfo, err := CBRetrieveCoinData(symbol, mockClient)
 
 		// There should have been a connection error
 		assert.NotNil(t, err, "This call should have produced a connection error")
@@ -61,7 +68,7 @@ func TestRetrieveCoinData(t *testing.T) {
 			Reply(200).
 			BodyString(`[asdf,[],!}`)
 
-		coinInfo, err := CBRetrieveCoinData(symbol, client)
+		coinInfo, err := CBRetrieveCoinData(symbol, absClient)
 
 		// There should have been a connection error
 		assert.NotNil(t, err, "This call should have produced a JSON parse error")
@@ -78,7 +85,7 @@ func TestRetrieveCoinData(t *testing.T) {
 			Reply(200).
 			SetHeader("Content-Length", "10")
 
-		coinInfo, err := CBRetrieveCoinData(symbol, client)
+		coinInfo, err := CBRetrieveCoinData(symbol, absClient)
 
 		assert.NotNil(t, err, "This call should have produced a read error for the response body")
 		assert.Equal(t, CoinInfo{}, coinInfo)
@@ -91,6 +98,8 @@ func TestCBRetrieveUserID(t *testing.T) {
 	client := http.Client{
 		Timeout: time.Second * 10,
 	}
+	var absClient HttpClient
+	absClient = &client
 
 	t.Run("Happy Path", func(t *testing.T) {
 		// Setup Test specifics
@@ -104,7 +113,7 @@ func TestCBRetrieveUserID(t *testing.T) {
 			Reply(200).
 			BodyString(json)
 
-		actualResp, _ := CBRetrieveUserID(cbAuth, client)
+		actualResp, _ := CBRetrieveUserID(cbAuth, absClient)
 		expectedResp := "9da7a204-544e-5fd1-9a12-61176c5d4cd8"
 		assert.Equal(t, expectedResp, actualResp)
 	})
@@ -121,7 +130,7 @@ func TestCBRetrieveUserID(t *testing.T) {
 			Reply(200).
 			BodyString(json)
 
-		actualResp, _ := CBRetrieveUserID(cbAuth, client)
+		actualResp, _ := CBRetrieveUserID(cbAuth, absClient)
 		expectedResp := ""
 		assert.Equal(t, expectedResp, actualResp)
 	})
