@@ -13,6 +13,18 @@ const CBExchangeRateUrl = "/v2/exchange-rates"
 const CBUserUrl = "/v2/user"
 const TransactionUrl = "/v2/accounts/:account_id/transactions"
 
+var (
+	ErrDecoding     = QueryError("failed decoding response")
+	ErrOnUnmarshall = QueryError("failed to unmarshall")
+	ErrConnection   = QueryError("error during request")
+)
+
+func (q QueryError) Error() string {
+	return string(q)
+}
+
+type QueryError string
+
 type CoinInfoResponse struct {
 	Data CoinInfo `json:"data"`
 }
@@ -63,7 +75,7 @@ func CBRetrieveCoinData(symbol string, client HttpClient) (CoinInfo, error) {
 	//TODO: Create custom error for connectivity failures
 	if err != nil {
 		log.Printf("Hit error on retrieval: %s", err)
-		return CoinInfo{}, err
+		return CoinInfo{}, ErrConnection
 	}
 	defer resp.Body.Close()
 
@@ -73,13 +85,13 @@ func CBRetrieveCoinData(symbol string, client HttpClient) (CoinInfo, error) {
 	bodyAsStr, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Printf("Failed to read body of error: %s", err)
-		return CoinInfo{}, err
+		return CoinInfo{}, ErrDecoding
 	}
 
 	//TODO: Create custom error for unmarshalling issues
 	if err := json.Unmarshal([]byte(bodyAsStr), &cResp); err != nil {
 		log.Printf("Failed to unmarshall the bits: %s", err)
-		return CoinInfo{}, err
+		return CoinInfo{}, ErrOnUnmarshall
 	}
 
 	return cResp.Data, err
@@ -101,21 +113,18 @@ func CBRetrieveUserID(cbAuth auth.CBAuth, client HttpClient) (string, error) {
 	// Retrieve response
 	resp, err := client.Do(req)
 
-	//TODO: Create custom error for failure to decode
 	if err != nil {
-		log.Printf("URL: " + url)
 		log.Printf("%s", err)
-		return "", err
+		return "", ErrDecoding
 	}
 	defer resp.Body.Close()
 
 	bodyAsStr, err := io.ReadAll(resp.Body)
 	userResp := CBUserResponse{}
 
-	//TODO: Create custom error for failure to decode
 	if err := json.Unmarshal([]byte(bodyAsStr), &userResp); err != nil {
 		log.Printf("error: %s", err)
-		return "", err
+		return "", ErrOnUnmarshall
 	}
 
 	log.Printf("Made it to the end")

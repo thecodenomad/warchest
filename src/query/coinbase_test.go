@@ -55,8 +55,8 @@ func TestRetrieveCoinData(t *testing.T) {
 		coinInfo, err := CBRetrieveCoinData(symbol, mockClient)
 
 		// There should have been a connection error
-		assert.NotNil(t, err, "This call should have produced a connection error")
 		assert.Equal(t, CoinInfo{}, coinInfo)
+		assert.Equal(t, ErrConnection, err, "this should be a connection error")
 	})
 
 	t.Run("Malformed JSON response", func(t *testing.T) {
@@ -71,7 +71,7 @@ func TestRetrieveCoinData(t *testing.T) {
 		coinInfo, err := CBRetrieveCoinData(symbol, absClient)
 
 		// There should have been a connection error
-		assert.NotNil(t, err, "This call should have produced a JSON parse error")
+		assert.Equal(t, ErrOnUnmarshall, err, "This call should have produced a JSON parse error")
 		assert.Equal(t, CoinInfo{}, coinInfo)
 	})
 
@@ -83,7 +83,7 @@ func TestRetrieveCoinData(t *testing.T) {
 		gock.New(CBBaseURL).
 			Get(CBExchangeRateUrl).
 			Reply(200).
-			SetHeader("Content-Length", "10")
+			SetHeader("Content-Length", "1")
 
 		coinInfo, err := CBRetrieveCoinData(symbol, absClient)
 
@@ -91,6 +91,21 @@ func TestRetrieveCoinData(t *testing.T) {
 		assert.Equal(t, CoinInfo{}, coinInfo)
 	})
 
+	// addmittingly overkill, and borderline useful, but it makes for full coverage!
+	t.Run("Test error handling", func(t *testing.T) {
+		valueTests := []struct {
+			actualValue   string
+			expectedValue string
+		}{
+			{ErrDecoding.Error(), "failed decoding response"},
+			{ErrOnUnmarshall.Error(), "failed to unmarshall"},
+			{ErrConnection.Error(), "error during request"},
+		}
+		// Validate the rest of the imported values
+		for _, tt := range valueTests {
+			assert.Equal(t, tt.expectedValue, tt.actualValue)
+		}
+	})
 }
 
 func TestCBRetrieveUserID(t *testing.T) {
