@@ -21,7 +21,14 @@ const CbApiSecret = "CB_API_SECRET"
 
 func main() {
 
-	serverPtr := flag.Bool("server", false, "whether or not to start server (default port: 8080")
+	// Args
+	serverPtr := flag.Bool("server", false, "whether or not to start server (default port: 8080)")
+	savePtr := flag.Bool("save", true, "whether or not to save a list of transactions")
+	transactionTypePtr := flag.String("transaction-type", "all", "the type of coin to parse transactions against")
+
+	// Parse the argument flags
+	flag.Parse()
+
 	client := http.Client{
 		Timeout: time.Second * 10,
 	}
@@ -29,6 +36,8 @@ func main() {
 	absClient = &client
 
 	fmt.Println("Server enabled:", *serverPtr)
+	fmt.Println("Save enabled:", *savePtr)
+	fmt.Println("Transaction type:", *transactionTypePtr)
 
 	filepath := os.Getenv(WarchestConfigEnv)
 	configFile := config.ConfigFile{Filepath: filepath}
@@ -43,9 +52,9 @@ func main() {
 	apiSecret := os.Getenv(CbApiSecret)
 	cbAuth := auth.CBAuth{apiKey, apiSecret}
 
-	userId, nil := query.CBRetrieveUserID(cbAuth, absClient)
+	accountID, nil := query.CBRetrieveUserID(cbAuth, absClient)
 
-	fmt.Printf("Updating crypto wallet for id: %s\n", userId)
+	fmt.Printf("Updating crypto wallet for id: %s\n", accountID)
 	localWallet := warchestConfig.ToWallet()
 
 	netProfit, err := wallet.CalculateNetProfit(localWallet, absClient)
@@ -55,4 +64,12 @@ func main() {
 	}
 
 	fmt.Printf("Current Wallet's Net Profit: %.10f\n", netProfit)
+
+	// Download transactions
+	transactions, err := query.CBRetrieveTransactions(accountID, cbAuth, absClient)
+
+	for i, transaction := range transactions {
+		fmt.Printf("Transaction Id: %s", transaction.Data[i].Id)
+		fmt.Printf("Transaction Id: %s", transaction.Data[i].Amount.Currency)
+	}
 }
