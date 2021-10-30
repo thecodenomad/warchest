@@ -12,8 +12,9 @@ import (
 	"warchest/src/query"
 )
 
-func TestCalculateCoinProfit(t *testing.T) {
+func TestCoinUpdateProfit(t *testing.T) {
 
+	symbol := "ETH"
 	transactions := []CoinTransaction{
 		{1.0, 2.0, 3.0}, // $5 cost
 		{4.0, 5.0, 6.0}, // $26 cost
@@ -21,8 +22,8 @@ func TestCalculateCoinProfit(t *testing.T) {
 
 	testRateUSD := 30.0
 	expectedNetProfit := 5*testRateUSD - (1.0*2.0 + 3.0 + 4.0*5.0 + 6.0)
-	testCoin := Coin{"ETH", testRateUSD, 40.0, 50.0,
-		25, 5.0, 31.0, 0.0, transactions}
+	testCoin := WarchestCoin{31.0, 5.0, 0.0,
+		query.CoinRates{0.0, 0.0, testRateUSD}, symbol, transactions}
 
 	testCoin.UpdateProfit()
 
@@ -32,18 +33,19 @@ func TestCalculateCoinProfit(t *testing.T) {
 // This is one function purely for the coverage stats ;) for 'Update' method
 func TestCoin_Update(t *testing.T) {
 
+	symbol := "ETH"
 	client := http.Client{
 		Timeout: time.Second * 10,
 	}
 
-	var absClient query.HttpClient
+	var absClient query.HTTPClient
 	absClient = &client
 
 	// Establish Mock
 	json := `{"data":{"currency":"ETH","rates":{"USD":"12.99","EUR":"11.99","GBP": "10.99"}}}`
 	defer gock.Off()
 	gock.New(query.CBBaseURL).
-		Get(query.CBExchangeRateUrl).
+		Get(query.CBExchangeRateURL).
 		Reply(200).
 		BodyString(json)
 
@@ -51,8 +53,8 @@ func TestCoin_Update(t *testing.T) {
 	testCost := 10.0
 	testFee := 1.0
 	testTransactions := []CoinTransaction{{testAmount, testCost, testFee}}
-	coin := Coin{"ETH", 0.0, 0.0, 0.0, 0.0,
-		0, 0.0, 0.0, testTransactions}
+	coin := WarchestCoin{31.0, 5.0, 0.0,
+		query.CoinRates{}, symbol, testTransactions}
 
 	// Set Expectations for dem noty bits
 	expectedRate := 12.99
@@ -63,7 +65,7 @@ func TestCoin_Update(t *testing.T) {
 	coin.Update(absClient)
 
 	// Make sure the algo translated the response correctly
-	assert.Equal(t, expectedRate, coin.CurrentRateUSD, "should be the same")
+	assert.Equal(t, expectedRate, coin.Rates.USD, "should be the same")
 	assert.Equal(t, expectedCost, coin.Cost, "should be the same")
 	assert.Equal(t, expectedProfit, coin.Profit, "should be the same")
 }
@@ -76,6 +78,7 @@ func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
 
 func TestCoin_UpdateRates_Cloudy(t *testing.T) {
 
+	symbol := "ETH"
 	mockClient := &MockClient{}
 
 	// Force request failure
@@ -84,23 +87,24 @@ func TestCoin_UpdateRates_Cloudy(t *testing.T) {
 
 	expectedResp := 0.0
 	testTransactions := []CoinTransaction{}
-	coin := Coin{"ETH", 12.0, 11.0, 10.0, 0.0,
-		0, 0.0, 0.0, testTransactions}
+	coin := WarchestCoin{31.0, 5.0, 0.0,
+		query.CoinRates{}, symbol, testTransactions}
 
 	// Update the rates, but since there is an error we should _silently_ ignore and leave the rate at 0
 	// TODO: better error handling around requests maybe needed
 	coin.UpdateRates(mockClient)
 
 	// Verify method corralled the bits
-	assert.Equal(t, expectedResp, coin.CurrentRateUSD, "should be the same")
+	assert.Equal(t, expectedResp, coin.Rates.USD, "should be the same")
 }
 
 func TestCalculateNetProfit(t *testing.T) {
 
+	symbol := "ETH"
 	client := http.Client{
 		Timeout: time.Second * 10,
 	}
-	var absClient query.HttpClient
+	var absClient query.HTTPClient
 	absClient = &client
 
 	// Test variables, pedantic for extensibility
@@ -108,9 +112,9 @@ func TestCalculateNetProfit(t *testing.T) {
 	testCost := 10.0
 	testFee := 1.0
 	testTransactions := []CoinTransaction{{testAmount, testCost, testFee}}
-	coin := Coin{"ETH", 0.0, 0.0, 0.0, 0.0,
-		0, 0.0, 0.0, testTransactions}
-	wallet := Wallet{[]Coin{coin}, 0.0}
+	coin := WarchestCoin{31.0, 5.0, 0.0,
+		query.CoinRates{}, symbol, testTransactions}
+	wallet := Wallet{[]WarchestCoin{coin}, 0.0}
 
 	// Criteria
 	expectedProfit := "1.990000"
@@ -119,7 +123,7 @@ func TestCalculateNetProfit(t *testing.T) {
 	json := `{"data":{"currency":"ETH","rates":{"USD":"12.99","EUR":"11.99","GBP": "10.99"}}}`
 	defer gock.Off()
 	gock.New(query.CBBaseURL).
-		Get(query.CBExchangeRateUrl).
+		Get(query.CBExchangeRateURL).
 		Reply(200).
 		BodyString(json)
 

@@ -10,14 +10,20 @@ import (
 )
 
 var (
-	CBACCESS_KEY       = "CB-ACCESS-KEY"
-	CBACCESS_SIGN      = "CB-ACCESS-SIGN"
-	CBACCESS_TIMESTAMP = "CB-ACCESS-TIMESTAMP"
+	// CBAccessKey is the API key established in your coinbase profile settings
+	CBAccessKey = "CB-ACCESS-KEY"
+
+	// CBAccessSign is the calculated signature used to authenticate the request
+	CBAccessSign = "CB-ACCESS-SIGN"
+
+	// CBAccessTimestamp is the timestamp used to calculate the signature (timeout threshold of 30 seconds)
+	CBAccessTimestamp = "CB-ACCESS-TIMESTAMP"
 )
 
+// CBAuth is the authentication object used to create a signature for a request
 type CBAuth struct {
-	ApiKey    string
-	ApiSecret string
+	APIKey    string
+	APISecret string
 }
 
 // Ref: https://developers.coinbase.com/docs/wallet/api-key-authentication
@@ -51,6 +57,7 @@ type CBAuth struct {
 // the API server time if you believe there may be a time skew between your server and the API
 // servers.
 
+// NewAuthMap generates the authentication headers required for a given request
 func (c *CBAuth) NewAuthMap(requestMethod, requestBody, requestPath string) map[string]string {
 
 	// Setup return object
@@ -61,14 +68,14 @@ func (c *CBAuth) NewAuthMap(requestMethod, requestBody, requestPath string) map[
 
 	// Sign at the dotted line...
 	sigText := strconv.Itoa(timestamp) + requestMethod + requestPath + requestBody
-	h := hmac.New(sha256.New, []byte(c.ApiSecret))
+	h := hmac.New(sha256.New, []byte(c.APISecret))
 	h.Write([]byte(sigText))
 	signature := hex.EncodeToString(h.Sum(nil))
 
 	// Apply the things
-	headers[CBACCESS_KEY] = c.ApiKey
-	headers[CBACCESS_TIMESTAMP] = fmt.Sprintf("%d", timestamp)
-	headers[CBACCESS_SIGN] = signature
+	headers[CBAccessKey] = c.APIKey
+	headers[CBAccessTimestamp] = fmt.Sprintf("%d", timestamp)
+	headers[CBAccessSign] = signature
 
 	return headers
 }
