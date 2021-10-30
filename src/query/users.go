@@ -8,6 +8,22 @@ import (
 	"warchest/src/auth"
 )
 
+const CBUserUrl = "/v2/user"
+
+type CBUserResp struct {
+	Data struct {
+		Id              string      `json:"id"`
+		Name            string      `json:"name"`
+		Username        string      `json:"username"`
+		ProfileLocation interface{} `json:"profile_location"`
+		ProfileBio      interface{} `json:"profile_bio"`
+		ProfileUrl      string      `json:"profile_url"`
+		AvatarUrl       string      `json:"avatar_url"`
+		Resource        string      `json:"resource"`
+		ResourcePath    string      `json:"resource_path"`
+	} `json:"data"`
+}
+
 // CBRetrieveUserID will return the userID associated with the given api key
 func CBRetrieveUserID(cbAuth auth.CBAuth, client HttpClient) (string, error) {
 
@@ -32,13 +48,12 @@ func CBRetrieveUserID(cbAuth auth.CBAuth, client HttpClient) (string, error) {
 	defer resp.Body.Close()
 
 	bodyAsStr, err := io.ReadAll(resp.Body)
-	userResp := CBUserResponse{}
+	userResp := CBUserResp{}
 
 	if err := json.Unmarshal([]byte(bodyAsStr), &userResp); err != nil {
 		log.Printf("error: %s", err)
 		return "", ErrOnUnmarshall
 	}
 
-	log.Printf("Made it to the end")
 	return userResp.Data.Id, nil
 }

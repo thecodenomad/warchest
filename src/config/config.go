@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
+	"warchest/src/query"
 	"warchest/src/wallet"
 )
 
@@ -105,7 +106,7 @@ func (c *ConfigFile) ToConfig() (Config, error) {
 
 func (c *Config) ToWallet() wallet.Wallet {
 
-	coins := make(map[string]wallet.Coin)
+	coins := make(map[string]wallet.WarchestCoin)
 
 	// Collect coins into a slice
 	for _, configTransaction := range c.Transactions {
@@ -115,19 +116,23 @@ func (c *Config) ToWallet() wallet.Wallet {
 		// Is Coin found?
 		coin, ok := coins[coinSymbol]
 		if !ok {
-			coinToInit := wallet.Coin{coinSymbol, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, []wallet.CoinTransaction{}}
+			coinToInit := wallet.WarchestCoin{0.0, 0.0, 0.0, query.CoinRates{},
+				coinSymbol, []wallet.CoinTransaction{}}
+
 			coins[configTransaction.CoinSymbol] = coinToInit
 
 			// Coin to work with for the rest of the transaction collection
 			coin = coinToInit
 		}
 
-		coinTransaction := wallet.CoinTransaction{configTransaction.Amount, configTransaction.PurchasedPriceUSD, configTransaction.TransactionFee}
+		coinTransaction := wallet.CoinTransaction{configTransaction.Amount,
+			configTransaction.PurchasedPriceUSD, configTransaction.TransactionFee}
+
 		coin.Transactions = append(coin.Transactions, coinTransaction)
 		coins[configTransaction.CoinSymbol] = coin
 	}
 
-	wallet := wallet.Wallet{[]wallet.Coin{}, 0.0}
+	wallet := wallet.Wallet{[]wallet.WarchestCoin{}, 0.0}
 	// Convert map to wallet
 	for _, coin := range coins {
 		// Create new coins from the collection above

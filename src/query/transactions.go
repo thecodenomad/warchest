@@ -10,7 +10,9 @@ import (
 	"warchest/src/auth"
 )
 
-type CBTransaction struct {
+const CBTransactionUrl = "/v2/accounts/:account_id/transactions"
+
+type CBTransactionResp struct {
 	Pagination struct {
 		EndingBefore  interface{} `json:"ending_before"`
 		StartingAfter interface{} `json:"starting_after"`
@@ -19,47 +21,49 @@ type CBTransaction struct {
 		PreviousUri   interface{} `json:"previous_uri"`
 		NextUri       interface{} `json:"next_uri"`
 	} `json:"pagination"`
-	Data []struct {
-		Id     string `json:"id"`
-		Type   string `json:"type"`
-		Status string `json:"status"`
-		Amount struct {
-			Amount   string `json:"amount"`
-			Currency string `json:"currency"`
-		} `json:"amount"`
-		NativeAmount struct {
-			Amount   string `json:"amount"`
-			Currency string `json:"currency"`
-		} `json:"native_amount"`
-		Description  *string   `json:"description"`
-		CreatedAt    time.Time `json:"created_at"`
-		UpdatedAt    time.Time `json:"updated_at"`
-		Resource     string    `json:"resource"`
-		ResourcePath string    `json:"resource_path"`
-		Buy          struct {
-			Id           string `json:"id"`
-			Resource     string `json:"resource"`
-			ResourcePath string `json:"resource_path"`
-		} `json:"buy,omitempty"`
-		Details struct {
-			Title    string `json:"title"`
-			Subtitle string `json:"subtitle"`
-		} `json:"details"`
-		To struct {
-			Resource     string `json:"resource"`
-			Email        string `json:"email,omitempty"`
-			Id           string `json:"id,omitempty"`
-			ResourcePath string `json:"resource_path,omitempty"`
-		} `json:"to,omitempty"`
-		Network struct {
-			Status string `json:"status"`
-			Name   string `json:"name"`
-		} `json:"network,omitempty"`
-	} `json:"data"`
+	Transactions []CBTransaction `json:"data"`
 }
 
-// CBRetrieveTransactions will return transactions for all coins the apikey has access to
-func CBRetrieveTransactions(accountID string, cbAuth auth.CBAuth, client HttpClient) ([]CBTransaction, error) {
+type CBTransaction struct {
+	Id     string `json:"id"`
+	Type   string `json:"type"`
+	Status string `json:"status"`
+	Amount struct {
+		Amount   string `json:"amount"`
+		Currency string `json:"currency"`
+	} `json:"amount"`
+	NativeAmount struct {
+		Amount   string `json:"amount"`
+		Currency string `json:"currency"`
+	} `json:"native_amount"`
+	Description  *string   `json:"description"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	Resource     string    `json:"resource"`
+	ResourcePath string    `json:"resource_path"`
+	Buy          struct {
+		Id           string `json:"id"`
+		Resource     string `json:"resource"`
+		ResourcePath string `json:"resource_path"`
+	} `json:"buy,omitempty"`
+	Details struct {
+		Title    string `json:"title"`
+		Subtitle string `json:"subtitle"`
+	} `json:"details"`
+	To struct {
+		Resource     string `json:"resource"`
+		Email        string `json:"email,omitempty"`
+		Id           string `json:"id,omitempty"`
+		ResourcePath string `json:"resource_path,omitempty"`
+	} `json:"to,omitempty"`
+	Network struct {
+		Status string `json:"status"`
+		Name   string `json:"name"`
+	} `json:"network,omitempty"`
+}
+
+// CBCoinTransactions will return transactions for all coins the apikey has access to
+func CBCoinTransactions(accountID string, cbAuth auth.CBAuth, client HttpClient) ([]CBTransactionResp, error) {
 
 	transactionPath := strings.Replace(CBTransactionUrl, ":account_id", accountID, -1)
 
@@ -79,12 +83,12 @@ func CBRetrieveTransactions(accountID string, cbAuth auth.CBAuth, client HttpCli
 
 	if err != nil {
 		log.Printf("%s", err)
-		return []CBTransaction{}, ErrDecoding
+		return []CBTransactionResp{}, ErrDecoding
 	}
 	defer resp.Body.Close()
 
 	bodyAsStr, err := io.ReadAll(resp.Body)
-	var transactions []CBTransaction
+	var transactions []CBTransactionResp
 
 	if err := json.Unmarshal([]byte(bodyAsStr), &transactions); err != nil {
 		log.Printf("transaction_path: %s", transactionPath)
@@ -92,7 +96,7 @@ func CBRetrieveTransactions(accountID string, cbAuth auth.CBAuth, client HttpCli
 		log.Printf("account_id: %s", accountID)
 		log.Printf("error: %s", err)
 		log.Printf("Body of response: %s", bodyAsStr)
-		return []CBTransaction{}, ErrOnUnmarshall
+		return []CBTransactionResp{}, ErrOnUnmarshall
 	}
 
 	return transactions, nil

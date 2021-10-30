@@ -7,9 +7,9 @@ import (
 	"os"
 	"time"
 	"warchest/src/auth"
-	"warchest/src/config"
+	// "warchest/src/config"
 	"warchest/src/query"
-	"warchest/src/wallet"
+	// "warchest/src/wallet"
 )
 
 const FailedLoadConfigRC = 2
@@ -39,37 +39,48 @@ func main() {
 	fmt.Println("Save enabled:", *savePtr)
 	fmt.Println("Transaction type:", *transactionTypePtr)
 
-	filepath := os.Getenv(WarchestConfigEnv)
-	configFile := config.ConfigFile{Filepath: filepath}
-
-	warchestConfig, err := configFile.ToConfig()
-	if err != nil {
-		fmt.Printf("Failed loading config: %s\n", err)
-		os.Exit(FailedLoadConfigRC)
-	}
+	//filepath := os.Getenv(WarchestConfigEnv)
+	//configFile := config.ConfigFile{Filepath: filepath}
+	//warchestConfig, err := configFile.ToConfig()
+	//if err != nil {
+	//	fmt.Printf("Failed loading config: %s\n", err)
+	//	os.Exit(FailedLoadConfigRC)
+	//}
 
 	apiKey := os.Getenv(CbApiKey)
 	apiSecret := os.Getenv(CbApiSecret)
 	cbAuth := auth.CBAuth{apiKey, apiSecret}
 
-	accountID, nil := query.CBRetrieveUserID(cbAuth, absClient)
+	userID, _ := query.CBRetrieveUserID(cbAuth, absClient)
+	accountsResp, _ := query.CBRetrieveAccounts(cbAuth, absClient)
 
-	fmt.Printf("Updating crypto wallet for id: %s\n", accountID)
-	localWallet := warchestConfig.ToWallet()
-
-	netProfit, err := wallet.CalculateNetProfit(localWallet, absClient)
-	if err != nil {
-		fmt.Printf("Failed to calculate Wallet's Profit: %s\n", err)
-		os.Exit(FailedCalculatingWallet)
+	// Filter out non-zero amount of individual coin types
+	valueMap := map[string]query.CBAccount{}
+	for _, account := range accountsResp.Accounts {
+		if account.Balance.Amount > 0.0 {
+			valueMap[account.Currency.Code] = account
+		}
 	}
 
-	fmt.Printf("Current Wallet's Net Profit: %.10f\n", netProfit)
+	fmt.Printf("There are %d types of coins.\n", len(accountsResp.Accounts))
+	fmt.Printf("You have %d type(s) of coin(s) in your wallet.\n", len(valueMap))
+
+	fmt.Printf("Updating crypto wallet for id: %s\n", userID)
+	//localWallet := warchestConfig.ToWallet()
+	//
+	//netProfit, err := wallet.CalculateNetProfit(localWallet, absClient)
+	//if err != nil {
+	//	fmt.Printf("Failed to calculate Wallet's Profit: %s\n", err)
+	//	os.Exit(FailedCalculatingWallet)
+	//}
+	//
+	//fmt.Printf("Current Wallet's Net Profit: %.10f\n", netProfit)
 
 	// Download transactions
-	transactions, err := query.CBRetrieveTransactions(accountID, cbAuth, absClient)
-
-	for i, transaction := range transactions {
-		fmt.Printf("Transaction Id: %s", transaction.Data[i].Id)
-		fmt.Printf("Transaction Id: %s", transaction.Data[i].Amount.Currency)
-	}
+	//transactions, err := query.CBCoinTransactions(accountID, cbAuth, absClient)
+	//
+	//for i, transaction := range transactions {
+	//	fmt.Printf("Transaction Id: %s", transaction.Data[i].Id)
+	//	fmt.Printf("Transaction Id: %s", transaction.Data[i].Amount.Currency)
+	//}
 }
