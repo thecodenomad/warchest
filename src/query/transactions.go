@@ -69,6 +69,7 @@ type CBTransaction struct {
 	} `json:"network,omitempty"`
 }
 
+// ToCoinTransaction will take a CBTransaction and convert relevant information into a CoinTransaction
 func (c *CBTransaction) ToCoinTransaction() CoinTransaction {
 	// TODO: Add error handling for values that don't exist
 	return CoinTransaction{NumCoins: c.Amount.Amount, PurchasedPrice: c.NativeAmount.Amount}

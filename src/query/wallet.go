@@ -35,6 +35,7 @@ type CoinTransaction struct {
 	TransactionFee float64
 }
 
+// UpdateTransactions method will retrieve the transactions for a given coin
 func (w *WarchestCoin) UpdateTransactions(cbAuth auth.CBAuth, client HTTPClient) {
 
 	transactions, err := CBCoinTransactions(w.AccountID, cbAuth, client)
