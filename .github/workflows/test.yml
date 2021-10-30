@@ -21,12 +21,12 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
 
+      - name: Checkout code
+        uses: actions/checkout@v2
+
       - name: Install Go Linter
         run: |
           go get -u golang.org/x/lint/golint
-
-      - name: Checkout code
-        uses: actions/checkout@v2
 
       - name: Lint
         run: |
