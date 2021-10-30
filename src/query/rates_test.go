@@ -17,7 +17,7 @@ func TestRetrieveCoinData(t *testing.T) {
 		Timeout: time.Second * 10,
 	}
 
-	var absClient HttpClient
+	var absClient HTTPClient
 	absClient = &client
 
 	t.Run("Happy Path", func(t *testing.T) {
@@ -26,7 +26,7 @@ func TestRetrieveCoinData(t *testing.T) {
 		// Establish Mock
 		defer gock.Off()
 		gock.New(CBBaseURL).
-			Get(CBExchangeRateUrl).
+			Get(CBExchangeRateURL).
 			Reply(200).
 			BodyString(json)
 
@@ -53,7 +53,7 @@ func TestRetrieveCoinData(t *testing.T) {
 		// Establish Mock
 		defer gock.Off()
 		gock.New(CBBaseURL).
-			Get(CBExchangeRateUrl).
+			Get(CBExchangeRateURL).
 			Reply(200).
 			BodyString(`[asdf,[],!}`)
 
@@ -69,7 +69,7 @@ func TestRetrieveCoinData(t *testing.T) {
 		// Establish Mock
 		defer gock.Off()
 		gock.New(CBBaseURL).
-			Get(CBExchangeRateUrl).
+			Get(CBExchangeRateURL).
 			Reply(200).
 			SetHeader("Content-Length", "1")
 

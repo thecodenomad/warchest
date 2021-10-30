@@ -10,8 +10,10 @@ import (
 	"warchest/src/auth"
 )
 
-const CBAccountsUrl = "/v2/accounts"
+// CBAccountsURL is the path to the GET accounts API call
+const CBAccountsURL = "/v2/accounts"
 
+// CBAccountsResp is the response object returned by retreiving all accounts
 // TODO: need to handle pagination if there are that many accounts
 type CBAccountsResp struct {
 	Pagination struct {
@@ -21,14 +23,15 @@ type CBAccountsResp struct {
 		NextStartingAfter    string      `json:"next_starting_after"`
 		Limit                int         `json:"limit"`
 		Order                string      `json:"order"`
-		PreviousUri          interface{} `json:"previous_uri"`
-		NextUri              string      `json:"next_uri"`
+		PreviousURI          interface{} `json:"previous_uri"`
+		NextURI              string      `json:"next_uri"`
 	} `json:"pagination"`
 	Accounts []CBAccount `json:"data"`
 }
 
+// CBAccount is an individual account object
 type CBAccount struct {
-	Id       string `json:"id"`
+	ID       string `json:"id"`
 	Name     string `json:"name"`
 	Primary  bool   `json:"primary"`
 	Type     string `json:"type"`
@@ -40,7 +43,7 @@ type CBAccount struct {
 		Exponent     int    `json:"exponent"`
 		Type         string `json:"type"`
 		AddressRegex string `json:"address_regex"`
-		AssetId      string `json:"asset_id"`
+		AssetID      string `json:"asset_id"`
 		Slug         string `json:"slug"`
 	} `json:"currency"`
 	Balance struct {
@@ -55,10 +58,11 @@ type CBAccount struct {
 	AllowWithdrawals bool      `json:"allow_withdrawals"`
 }
 
-func CBRetrieveAccounts(cbAuth auth.CBAuth, client HttpClient) (CBAccountsResp, error) {
+// CBRetrieveAccounts is a function that will retrieve all accounts associated with the account
+func CBRetrieveAccounts(cbAuth auth.CBAuth, client HTTPClient) (CBAccountsResp, error) {
 
-	url := CBBaseURL + CBAccountsUrl
-	authHeaders := cbAuth.NewAuthMap("GET", "", CBAccountsUrl)
+	url := CBBaseURL + CBAccountsURL
+	authHeaders := cbAuth.NewAuthMap("GET", "", CBAccountsURL)
 	req, err := http.NewRequest("GET", url, nil)
 
 	// Set auth headers
@@ -100,7 +104,7 @@ func CBRetrieveAccounts(cbAuth auth.CBAuth, client HttpClient) (CBAccountsResp, 
 }
 
 ////UpdateRates updates a coin's current exchange rate
-//func (c *CBAccount) UpdateRates(client HttpClient) {
+//func (c *CBAccount) UpdateRates(client HTTPClient) {
 //
 //	coinInfo, err := CBRetrieveCoinRate(c.Currency.Code, client)
 //	if err != nil {
@@ -136,7 +140,7 @@ func CBRetrieveAccounts(cbAuth auth.CBAuth, client HttpClient) (CBAccountsResp, 
 //}
 //
 ////Update runs all internal updates to get the latest value of a particular coin in a wallet
-//func (c *Coin) Update(client query.HttpClient) {
+//func (c *Coin) Update(client query.HTTPClient) {
 //	c.UpdateCost()
 //	c.UpdateRates(client)
 //	c.UpdateProfit()
@@ -152,7 +156,7 @@ func CBRetrieveAccounts(cbAuth auth.CBAuth, client HttpClient) (CBAccountsResp, 
 //}
 //
 //// CalculateNetProfit will calculate the total profit for the coins in the provided Wallet
-//func CalculateNetProfit(wallet Wallet, client query.HttpClient) (float64, error) {
+//func CalculateNetProfit(wallet Wallet, client query.HTTPClient) (float64, error) {
 //	netProfit := 0.0
 //
 //	log.Printf("There are %d coin(s) in your wallet, calculating...\n", len(wallet.Coins))

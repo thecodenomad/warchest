@@ -10,7 +10,7 @@ func TestConfig(t *testing.T) {
 	// Happy Path
 	t.Run("Test Valid Config", func(t *testing.T) {
 
-		testConfigFile := ConfigFile{Filepath: "./testdata/CoinConfig.json"}
+		testConfigFile := LocalFile{Filepath: "./testdata/CoinConfig.json"}
 		tmpConfig, err := testConfigFile.ToConfig()
 
 		assert.Nil(t, err, "Should not fail loading string")
@@ -39,7 +39,7 @@ func TestConfig(t *testing.T) {
 	})
 
 	t.Run("Convert config to wallet", func(t *testing.T) {
-		testConfigFile := ConfigFile{Filepath: "./testdata/CoinConfig.json"}
+		testConfigFile := LocalFile{Filepath: "./testdata/CoinConfig.json"}
 		tmpConfig, _ := testConfigFile.ToConfig()
 		wallet := tmpConfig.ToWallet()
 		assert.Equal(t, len(wallet.Coins), 2, "Failed to have correct number of coins")
@@ -54,17 +54,17 @@ func TestConfig(t *testing.T) {
 	t.Run("Test file existence", func(t *testing.T) {
 
 		// Test non existent file
-		testConfigFile := ConfigFile{Filepath: "./testdata/Bogus.json"}
+		testConfigFile := LocalFile{Filepath: "./testdata/Bogus.json"}
 		assert.False(t, testConfigFile.Exists(), "This file should not exist")
 
 		// Test existing file
-		testConfigFile = ConfigFile{Filepath: "./testdata/Malformed.json"}
+		testConfigFile = LocalFile{Filepath: "./testdata/Malformed.json"}
 		assert.True(t, testConfigFile.Exists(), "This file should exist")
 
 	})
 
 	t.Run("Test malformed JSON", func(t *testing.T) {
-		testConfigFile := ConfigFile{Filepath: "./testdata/Malformed.json"}
+		testConfigFile := LocalFile{Filepath: "./testdata/Malformed.json"}
 		tmpConfig, err := testConfigFile.Parse()
 
 		assert.Equal(t, tmpConfig, Config{}, "Config not empty!")
@@ -73,7 +73,7 @@ func TestConfig(t *testing.T) {
 	})
 
 	t.Run("Test file read problems", func(t *testing.T) {
-		testConfigFile := ConfigFile{Filepath: "./testdata/Bogus.json"}
+		testConfigFile := LocalFile{Filepath: "./testdata/Bogus.json"}
 		byteValue, err := testConfigFile.Load()
 
 		assert.Empty(t, byteValue, "should be empty")
@@ -84,7 +84,7 @@ func TestConfig(t *testing.T) {
 	t.Run("Test To Config error handling", func(t *testing.T) {
 
 		// Existence check
-		testConfigFile := ConfigFile{Filepath: "./testdata/Bogus.json"}
+		testConfigFile := LocalFile{Filepath: "./testdata/Bogus.json"}
 		_, err := testConfigFile.ToConfig()
 		assert.NotNil(t, ErrFileNotFound, err, "this should have been a file existence error")
 

@@ -14,7 +14,7 @@ func TestCBRetrieveUserID(t *testing.T) {
 	client := http.Client{
 		Timeout: time.Second * 10,
 	}
-	var absClient HttpClient
+	var absClient HTTPClient
 	absClient = &client
 
 	t.Run("Happy Path", func(t *testing.T) {
@@ -25,7 +25,7 @@ func TestCBRetrieveUserID(t *testing.T) {
 		// Estbalish Mock
 		defer gock.Off()
 		gock.New(CBBaseURL).
-			Get(CBUserUrl).
+			Get(CBUserURL).
 			Reply(200).
 			BodyString(json)
 
@@ -42,7 +42,7 @@ func TestCBRetrieveUserID(t *testing.T) {
 		// Estbalish Mock
 		defer gock.Off()
 		gock.New(CBBaseURL).
-			Get(CBUserUrl).
+			Get(CBUserURL).
 			Reply(200).
 			BodyString(json)
 

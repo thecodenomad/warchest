@@ -8,28 +8,30 @@ import (
 	"warchest/src/auth"
 )
 
-const CBUserUrl = "/v2/user"
+// CBUserURL is the url path for retreiving a user object
+const CBUserURL = "/v2/user"
 
+// CBUserResp is the response object from a request to retrive a user object
 type CBUserResp struct {
 	Data struct {
-		Id              string      `json:"id"`
+		ID              string      `json:"id"`
 		Name            string      `json:"name"`
 		Username        string      `json:"username"`
 		ProfileLocation interface{} `json:"profile_location"`
 		ProfileBio      interface{} `json:"profile_bio"`
-		ProfileUrl      string      `json:"profile_url"`
-		AvatarUrl       string      `json:"avatar_url"`
+		ProfileURL      string      `json:"profile_url"`
+		AvatarURL       string      `json:"avatar_url"`
 		Resource        string      `json:"resource"`
 		ResourcePath    string      `json:"resource_path"`
 	} `json:"data"`
 }
 
 // CBRetrieveUserID will return the userID associated with the given api key
-func CBRetrieveUserID(cbAuth auth.CBAuth, client HttpClient) (string, error) {
+func CBRetrieveUserID(cbAuth auth.CBAuth, client HTTPClient) (string, error) {
 
-	url := CBBaseURL + CBUserUrl
+	url := CBBaseURL + CBUserURL
 
-	authHeaders := cbAuth.NewAuthMap("GET", "", CBUserUrl)
+	authHeaders := cbAuth.NewAuthMap("GET", "", CBUserURL)
 	req, err := http.NewRequest("GET", url, nil)
 
 	// Set auth headers
@@ -55,5 +57,6 @@ func CBRetrieveUserID(cbAuth auth.CBAuth, client HttpClient) (string, error) {
 		return "", ErrOnUnmarshall
 	}
 
-	return userResp.Data.Id, nil
+	log.Printf("Body as string: %s", bodyAsStr)
+	return userResp.Data.ID, nil
 }

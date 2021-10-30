@@ -12,12 +12,23 @@ import (
 	// "warchest/src/wallet"
 )
 
+// FailedLoadConfigRC Return code for failing to load the Warchest configuration
 const FailedLoadConfigRC = 2
+
+// FailedRetrievingData Return code for failing the retrieval of coin data
 const FailedRetrievingData = 3
+
+// FailedCalculatingWallet Return code for failing caculation of wallet
 const FailedCalculatingWallet = 3
+
+// WarchestConfigEnv is the environment variable that will point to coin transactions used by Warchest
 const WarchestConfigEnv = "WARCHEST_CONFIG"
-const CbApiKey = "CB_API_KEY"
-const CbApiSecret = "CB_API_SECRET"
+
+// CbAPIKey is the api key established via your coinbase profile
+const CbAPIKey = "CB_API_KEY"
+
+// CbAPISecret is the secret associated with the cbAPIKey
+const CbAPISecret = "CB_API_SECRET"
 
 func main() {
 
@@ -32,7 +43,7 @@ func main() {
 	client := http.Client{
 		Timeout: time.Second * 10,
 	}
-	var absClient query.HttpClient
+	var absClient query.HTTPClient
 	absClient = &client
 
 	fmt.Println("Server enabled:", *serverPtr)
@@ -47,8 +58,8 @@ func main() {
 	//	os.Exit(FailedLoadConfigRC)
 	//}
 
-	apiKey := os.Getenv(CbApiKey)
-	apiSecret := os.Getenv(CbApiSecret)
+	apiKey := os.Getenv(CbAPIKey)
+	apiSecret := os.Getenv(CbAPISecret)
 	cbAuth := auth.CBAuth{apiKey, apiSecret}
 
 	userID, _ := query.CBRetrieveUserID(cbAuth, absClient)
@@ -63,9 +74,13 @@ func main() {
 	}
 
 	fmt.Printf("There are %d types of coins.\n", len(accountsResp.Accounts))
-	fmt.Printf("You have %d type(s) of coin(s) in your wallet.\n", len(valueMap))
+	fmt.Printf("You have %d type(s) of coin(s) in your wallet:\n", len(valueMap))
+	for _, account := range valueMap {
+		fmt.Printf("\t%s\n", account.Currency.Code)
+	}
 
-	fmt.Printf("Updating crypto wallet for id: %s\n", userID)
+	fmt.Printf("\nUpdating crypto wallet for id: %s\n", userID)
+
 	//localWallet := warchestConfig.ToWallet()
 	//
 	//netProfit, err := wallet.CalculateNetProfit(localWallet, absClient)
@@ -80,7 +95,7 @@ func main() {
 	//transactions, err := query.CBCoinTransactions(accountID, cbAuth, absClient)
 	//
 	//for i, transaction := range transactions {
-	//	fmt.Printf("Transaction Id: %s", transaction.Data[i].Id)
-	//	fmt.Printf("Transaction Id: %s", transaction.Data[i].Amount.Currency)
+	//	fmt.Printf("Transaction ID: %s", transaction.Data[i].ID)
+	//	fmt.Printf("Transaction ID: %s", transaction.Data[i].Amount.Currency)
 	//}
 }

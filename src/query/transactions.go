@@ -10,22 +10,25 @@ import (
 	"warchest/src/auth"
 )
 
-const CBTransactionUrl = "/v2/accounts/:account_id/transactions"
+// CBTransactionURL is the url path for retrieving a coins transactions
+const CBTransactionURL = "/v2/accounts/:account_id/transactions"
 
+// CBTransactionResp is the unmarshalled response object containing a coins transactions
 type CBTransactionResp struct {
 	Pagination struct {
 		EndingBefore  interface{} `json:"ending_before"`
 		StartingAfter interface{} `json:"starting_after"`
 		Limit         int         `json:"limit"`
 		Order         string      `json:"order"`
-		PreviousUri   interface{} `json:"previous_uri"`
-		NextUri       interface{} `json:"next_uri"`
+		PreviousURI   interface{} `json:"previous_uri"`
+		NextURI       interface{} `json:"next_uri"`
 	} `json:"pagination"`
 	Transactions []CBTransaction `json:"data"`
 }
 
+// CBTransaction is a transaction that occured for a given coin
 type CBTransaction struct {
-	Id     string `json:"id"`
+	ID     string `json:"id"`
 	Type   string `json:"type"`
 	Status string `json:"status"`
 	Amount struct {
@@ -42,7 +45,7 @@ type CBTransaction struct {
 	Resource     string    `json:"resource"`
 	ResourcePath string    `json:"resource_path"`
 	Buy          struct {
-		Id           string `json:"id"`
+		ID           string `json:"id"`
 		Resource     string `json:"resource"`
 		ResourcePath string `json:"resource_path"`
 	} `json:"buy,omitempty"`
@@ -53,7 +56,7 @@ type CBTransaction struct {
 	To struct {
 		Resource     string `json:"resource"`
 		Email        string `json:"email,omitempty"`
-		Id           string `json:"id,omitempty"`
+		ID           string `json:"id,omitempty"`
 		ResourcePath string `json:"resource_path,omitempty"`
 	} `json:"to,omitempty"`
 	Network struct {
@@ -63,9 +66,9 @@ type CBTransaction struct {
 }
 
 // CBCoinTransactions will return transactions for all coins the apikey has access to
-func CBCoinTransactions(accountID string, cbAuth auth.CBAuth, client HttpClient) ([]CBTransactionResp, error) {
+func CBCoinTransactions(accountID string, cbAuth auth.CBAuth, client HTTPClient) ([]CBTransactionResp, error) {
 
-	transactionPath := strings.Replace(CBTransactionUrl, ":account_id", accountID, -1)
+	transactionPath := strings.Replace(CBTransactionURL, ":account_id", accountID, -1)
 
 	url := CBBaseURL + transactionPath
 

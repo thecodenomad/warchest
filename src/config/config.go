@@ -10,28 +10,40 @@ import (
 )
 
 var (
-	ErrReadingFile   = ConfigurationError("Failed reading file!")
-	ErrFileNotFound  = ConfigurationError("File not found!")
+	// ErrReadingFile occurs when the config file can't be read
+	ErrReadingFile = ConfigurationError("Failed reading file!")
+
+	//ErrFileNotFound occurs when the config file can't be found
+	ErrFileNotFound = ConfigurationError("File not found!")
+
+	//ErrMalformedJSON occurs when the JSON for the config file isn't valid
 	ErrMalformedJSON = ConfigurationError("Config isn't correct JSON!")
-	ErrOnUnMarshall  = ConfigurationError("Failed Unmarshalling JSON!")
+
+	//ErrOnUnMarshall occurs when the JSON structure doesn't match the configuration structure
+	ErrOnUnMarshall = ConfigurationError("Failed Unmarshalling JSON!")
 )
 
+// ConfigurationError struct for the errors defined above
+type ConfigurationError string
+
+// ConfigurationError helper method to throw the above errors
 func (c ConfigurationError) Error() string {
 	return string(c)
 }
 
-type ConfigFile struct {
+// LocalFile is a wrapper struct around the config file allowing for regeneration and storing of loaded config
+type LocalFile struct {
 	Filepath       string
 	ByteValue      []byte
 	WarchestConfig Config
 }
 
-type ConfigurationError string
-
+// Config is the object that holds transactions pulled in form the config file
 type Config struct {
 	Transactions []Transaction `json:"coin_purchases"`
 }
 
+// Transaction is an individual transaction object used by warchest
 type Transaction struct {
 	CoinSymbol        string  `json:"coin_symbol"`
 	Amount            float64 `json:"amount"`
@@ -39,7 +51,8 @@ type Transaction struct {
 	TransactionFee    float64 `json:"transaction_fee"`
 }
 
-func (c *ConfigFile) Exists() bool {
+// Exists method that checks if the config file exists
+func (c *LocalFile) Exists() bool {
 	// Check for files existence first
 	_, err := os.Stat(c.Filepath)
 	if errors.Is(err, os.ErrNotExist) {
@@ -48,7 +61,8 @@ func (c *ConfigFile) Exists() bool {
 	return true
 }
 
-func (c *ConfigFile) Load() ([]byte, error) {
+// Load method loads the config file into a byte array
+func (c *LocalFile) Load() ([]byte, error) {
 	// Try and load the config
 	jsonFile, err := os.Open(c.Filepath)
 	if err != nil {
@@ -63,7 +77,8 @@ func (c *ConfigFile) Load() ([]byte, error) {
 	return byteValue, nil
 }
 
-func (c *ConfigFile) Parse() (Config, error) {
+// Parse method parses a loaded config file from the internal ByteValue array.
+func (c *LocalFile) Parse() (Config, error) {
 	// Unmarshall the JSON
 	tmpConfig := Config{}
 	err := json.Unmarshal(c.ByteValue, &tmpConfig)
@@ -75,7 +90,8 @@ func (c *ConfigFile) Parse() (Config, error) {
 	return tmpConfig, err
 }
 
-func (c *ConfigFile) ToConfig() (Config, error) {
+// ToConfig method takes the config file and produces a instantiated config that warchest can consume
+func (c *LocalFile) ToConfig() (Config, error) {
 
 	// Check if the file has already been loaded
 	if !c.Exists() {
@@ -104,6 +120,7 @@ func (c *ConfigFile) ToConfig() (Config, error) {
 	return c.WarchestConfig, nil
 }
 
+// ToWallet method that produces a wallet based on the config object
 func (c *Config) ToWallet() wallet.Wallet {
 
 	coins := make(map[string]wallet.WarchestCoin)

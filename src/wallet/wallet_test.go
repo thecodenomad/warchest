@@ -38,14 +38,14 @@ func TestCoin_Update(t *testing.T) {
 		Timeout: time.Second * 10,
 	}
 
-	var absClient query.HttpClient
+	var absClient query.HTTPClient
 	absClient = &client
 
 	// Establish Mock
 	json := `{"data":{"currency":"ETH","rates":{"USD":"12.99","EUR":"11.99","GBP": "10.99"}}}`
 	defer gock.Off()
 	gock.New(query.CBBaseURL).
-		Get(query.CBExchangeRateUrl).
+		Get(query.CBExchangeRateURL).
 		Reply(200).
 		BodyString(json)
 
@@ -104,7 +104,7 @@ func TestCalculateNetProfit(t *testing.T) {
 	client := http.Client{
 		Timeout: time.Second * 10,
 	}
-	var absClient query.HttpClient
+	var absClient query.HTTPClient
 	absClient = &client
 
 	// Test variables, pedantic for extensibility
@@ -123,7 +123,7 @@ func TestCalculateNetProfit(t *testing.T) {
 	json := `{"data":{"currency":"ETH","rates":{"USD":"12.99","EUR":"11.99","GBP": "10.99"}}}`
 	defer gock.Off()
 	gock.New(query.CBBaseURL).
-		Get(query.CBExchangeRateUrl).
+		Get(query.CBExchangeRateURL).
 		Reply(200).
 		BodyString(json)
 

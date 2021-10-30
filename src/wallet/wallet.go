@@ -6,12 +6,13 @@ import (
 	"warchest/src/query"
 )
 
+// Wallet is the main object consumed by warchest that includes all coins and their transactions
 type Wallet struct {
 	Coins     []WarchestCoin
 	NetProfit float64
 }
 
-// Coin used to store an individual coins profit
+// WarchestCoin a coin object that includes stats and transactions for purchased coins
 // TODO: is there a better way to keep this DRY? ref PurchasedCoins
 type WarchestCoin struct {
 	Cost         float64
@@ -22,6 +23,7 @@ type WarchestCoin struct {
 	Transactions []CoinTransaction
 }
 
+// CoinTransaction is an individual transaction made for a given type of coin
 type CoinTransaction struct {
 	NumCoins       float64
 	PurchasedPrice float64
@@ -29,7 +31,7 @@ type CoinTransaction struct {
 }
 
 //UpdateRates updates a coin's current exchange rate
-func (w *WarchestCoin) UpdateRates(client query.HttpClient) {
+func (w *WarchestCoin) UpdateRates(client query.HTTPClient) {
 
 	coinRates, err := query.CBRetrieveCoinRate(w.CoinSymbol, client)
 	if err != nil {
@@ -70,7 +72,7 @@ func (w *WarchestCoin) UpdateProfit() {
 }
 
 //Update runs all internal updates to get the latest value of a particular coin in a wallet
-func (w *WarchestCoin) Update(client query.HttpClient) {
+func (w *WarchestCoin) Update(client query.HTTPClient) {
 	w.UpdateCost()
 	w.UpdateRates(client)
 	w.UpdateProfit()
@@ -86,7 +88,7 @@ func (w *WarchestCoin) Banner() {
 }
 
 // CalculateNetProfit will calculate the total profit for the coins in the provided Wallet
-func CalculateNetProfit(wallet Wallet, client query.HttpClient) (float64, error) {
+func CalculateNetProfit(wallet Wallet, client query.HTTPClient) (float64, error) {
 	netProfit := 0.0
 
 	log.Printf("There are %d coin(s) in your wallet, calculating...\n", len(wallet.Coins))
