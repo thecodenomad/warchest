@@ -9,7 +9,6 @@ import (
 	"warchest/src/auth"
 	// "warchest/src/config"
 	"warchest/src/query"
-	// "warchest/src/wallet"
 )
 
 // FailedLoadConfigRC Return code for failing to load the Warchest configuration
@@ -66,17 +65,24 @@ func main() {
 	accountsResp, _ := query.CBRetrieveAccounts(cbAuth, absClient)
 
 	// Filter out non-zero amount of individual coin types
-	valueMap := map[string]query.CBAccount{}
+	valueMap := map[string]query.WarchestCoin{}
 	for _, account := range accountsResp.Accounts {
 		if account.Balance.Amount > 0.0 {
-			valueMap[account.Currency.Code] = account
+			warchestCoin := query.WarchestCoin{AccountID: account.ID, CoinSymbol: account.Currency.Code}
+
+			// Update the coin's rates, profit, and cost
+			warchestCoin.Update(cbAuth, absClient)
+			valueMap[account.Currency.Code] = warchestCoin
 		}
 	}
 
 	fmt.Printf("There are %d types of coins.\n", len(accountsResp.Accounts))
 	fmt.Printf("You have %d type(s) of coin(s) in your wallet:\n", len(valueMap))
-	for _, account := range valueMap {
-		fmt.Printf("\t%s\n", account.Currency.Code)
+	for _, wcCoin := range valueMap {
+		fmt.Printf("\t%s\n", wcCoin.CoinSymbol)
+		fmt.Printf("\t\tAmount: %.6f\n", wcCoin.Amount)
+		fmt.Printf("\t\tCost: %.6f\n", wcCoin.Cost)
+		fmt.Printf("\t\tProfit: %.6f\n", wcCoin.Profit)
 	}
 
 	fmt.Printf("\nUpdating crypto wallet for id: %s\n", userID)

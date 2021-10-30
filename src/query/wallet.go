@@ -1,10 +1,14 @@
-package wallet
+package query
 
 import (
 	"fmt"
 	"log"
-	"warchest/src/query"
+	"warchest/src/auth"
 )
+
+//
+// Warchest Objects
+//////////////////////
 
 // Wallet is the main object consumed by warchest that includes all coins and their transactions
 type Wallet struct {
@@ -15,10 +19,11 @@ type Wallet struct {
 // WarchestCoin a coin object that includes stats and transactions for purchased coins
 // TODO: is there a better way to keep this DRY? ref PurchasedCoins
 type WarchestCoin struct {
+	AccountID    string
 	Cost         float64
 	Amount       float64
 	Profit       float64
-	Rates        query.CoinRates
+	Rates        CoinRates
 	CoinSymbol   string
 	Transactions []CoinTransaction
 }
@@ -30,10 +35,26 @@ type CoinTransaction struct {
 	TransactionFee float64
 }
 
-//UpdateRates updates a coin's current exchange rate
-func (w *WarchestCoin) UpdateRates(client query.HTTPClient) {
+func (w *WarchestCoin) UpdateTransactions(cbAuth auth.CBAuth, client HTTPClient) {
 
-	coinRates, err := query.CBRetrieveCoinRate(w.CoinSymbol, client)
+	transactions, err := CBCoinTransactions(w.AccountID, cbAuth, client)
+	if err != nil {
+		fmt.Printf("Failed retreiving transactions: %s", err)
+		w.Transactions = []CoinTransaction{}
+	}
+
+	coinTransactions := []CoinTransaction{}
+
+	for _, cbTransaction := range transactions {
+		coinTransactions = append(coinTransactions, cbTransaction.ToCoinTransaction())
+	}
+	w.Transactions = coinTransactions
+}
+
+//UpdateRates updates a coin's current exchange rate
+func (w *WarchestCoin) UpdateRates(client HTTPClient) {
+
+	coinRates, err := CBRetrieveCoinRates(w.CoinSymbol, client)
 	if err != nil {
 		log.Printf("Failed to retrieve market rates for %s\n", w.CoinSymbol)
 		// Reset instead of erroring
@@ -72,7 +93,8 @@ func (w *WarchestCoin) UpdateProfit() {
 }
 
 //Update runs all internal updates to get the latest value of a particular coin in a wallet
-func (w *WarchestCoin) Update(client query.HTTPClient) {
+func (w *WarchestCoin) Update(cbAuth auth.CBAuth, client HTTPClient) {
+	w.UpdateTransactions(cbAuth, client)
 	w.UpdateCost()
 	w.UpdateRates(client)
 	w.UpdateProfit()
@@ -88,13 +110,13 @@ func (w *WarchestCoin) Banner() {
 }
 
 // CalculateNetProfit will calculate the total profit for the coins in the provided Wallet
-func CalculateNetProfit(wallet Wallet, client query.HTTPClient) (float64, error) {
+func CalculateNetProfit(wallet Wallet, cbAuth auth.CBAuth, client HTTPClient) (float64, error) {
 	netProfit := 0.0
 
 	log.Printf("There are %d coin(s) in your wallet, calculating...\n", len(wallet.Coins))
 	for _, coin := range wallet.Coins {
 		// Make sure we have the latest rates
-		coin.Update(client)
+		coin.Update(cbAuth, client)
 
 		// Present stats for coin
 		coin.Banner()

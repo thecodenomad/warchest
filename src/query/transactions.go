@@ -13,6 +13,10 @@ import (
 // CBTransactionURL is the url path for retrieving a coins transactions
 const CBTransactionURL = "/v2/accounts/:account_id/transactions"
 
+//
+// Response Objects
+////////////////////
+
 // CBTransactionResp is the unmarshalled response object containing a coins transactions
 type CBTransactionResp struct {
 	Pagination struct {
@@ -32,12 +36,12 @@ type CBTransaction struct {
 	Type   string `json:"type"`
 	Status string `json:"status"`
 	Amount struct {
-		Amount   string `json:"amount"`
-		Currency string `json:"currency"`
+		Amount   float64 `json:"amount,string"`
+		Currency string  `json:"currency"`
 	} `json:"amount"`
 	NativeAmount struct {
-		Amount   string `json:"amount"`
-		Currency string `json:"currency"`
+		Amount   float64 `json:"amount,string"`
+		Currency string  `json:"currency"`
 	} `json:"native_amount"`
 	Description  *string   `json:"description"`
 	CreatedAt    time.Time `json:"created_at"`
@@ -65,8 +69,13 @@ type CBTransaction struct {
 	} `json:"network,omitempty"`
 }
 
+func (c *CBTransaction) ToCoinTransaction() CoinTransaction {
+	// TODO: Add error handling for values that don't exist
+	return CoinTransaction{NumCoins: c.Amount.Amount, PurchasedPrice: c.NativeAmount.Amount}
+}
+
 // CBCoinTransactions will return transactions for all coins the apikey has access to
-func CBCoinTransactions(accountID string, cbAuth auth.CBAuth, client HTTPClient) ([]CBTransactionResp, error) {
+func CBCoinTransactions(accountID string, cbAuth auth.CBAuth, client HTTPClient) ([]CBTransaction, error) {
 
 	transactionPath := strings.Replace(CBTransactionURL, ":account_id", accountID, -1)
 
@@ -86,12 +95,12 @@ func CBCoinTransactions(accountID string, cbAuth auth.CBAuth, client HTTPClient)
 
 	if err != nil {
 		log.Printf("%s", err)
-		return []CBTransactionResp{}, ErrDecoding
+		return []CBTransaction{}, ErrDecoding
 	}
 	defer resp.Body.Close()
 
 	bodyAsStr, err := io.ReadAll(resp.Body)
-	var transactions []CBTransactionResp
+	var transactions CBTransactionResp
 
 	if err := json.Unmarshal([]byte(bodyAsStr), &transactions); err != nil {
 		log.Printf("transaction_path: %s", transactionPath)
@@ -99,8 +108,8 @@ func CBCoinTransactions(accountID string, cbAuth auth.CBAuth, client HTTPClient)
 		log.Printf("account_id: %s", accountID)
 		log.Printf("error: %s", err)
 		log.Printf("Body of response: %s", bodyAsStr)
-		return []CBTransactionResp{}, ErrOnUnmarshall
+		return []CBTransaction{}, ErrOnUnmarshall
 	}
 
-	return transactions, nil
+	return transactions.Transactions, nil
 }

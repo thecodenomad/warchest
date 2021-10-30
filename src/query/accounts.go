@@ -106,7 +106,7 @@ func CBRetrieveAccounts(cbAuth auth.CBAuth, client HTTPClient) (CBAccountsResp, 
 ////UpdateRates updates a coin's current exchange rate
 //func (c *CBAccount) UpdateRates(client HTTPClient) {
 //
-//	coinInfo, err := CBRetrieveCoinRate(c.Currency.Code, client)
+//	coinInfo, err := CBRetrieveCoinRates(c.Currency.Code, client)
 //	if err != nil {
 //		log.Printf("Failed to retrieve market rates for %s\n", c.Name)
 //		// Reset instead of erroring

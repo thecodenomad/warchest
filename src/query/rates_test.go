@@ -30,7 +30,7 @@ func TestRetrieveCoinData(t *testing.T) {
 			Reply(200).
 			BodyString(json)
 
-		coinRates, err := CBRetrieveCoinRate(symbol, absClient)
+		coinRates, err := CBRetrieveCoinRates(symbol, absClient)
 		assert.Nil(t, err, "failed to retrieve rates")
 		assert.Equal(t, 12.00, coinRates.USD, "Should be the same")
 		assert.Equal(t, 11.00, coinRates.EUR, "Should be the same")
@@ -42,7 +42,7 @@ func TestRetrieveCoinData(t *testing.T) {
 
 		mockClient := &MockClient{}
 
-		_, err := CBRetrieveCoinRate(symbol, mockClient)
+		_, err := CBRetrieveCoinRates(symbol, mockClient)
 
 		// There should have been a connection error
 		assert.Equal(t, ErrConnection, err, "this should be a connection error")
@@ -57,7 +57,7 @@ func TestRetrieveCoinData(t *testing.T) {
 			Reply(200).
 			BodyString(`[asdf,[],!}`)
 
-		_, err := CBRetrieveCoinRate(symbol, absClient)
+		_, err := CBRetrieveCoinRates(symbol, absClient)
 
 		// There should have been a connection error
 		assert.Equal(t, ErrOnUnmarshall, err, "This call should have produced a JSON parse error")
@@ -73,7 +73,7 @@ func TestRetrieveCoinData(t *testing.T) {
 			Reply(200).
 			SetHeader("Content-Length", "1")
 
-		_, err := CBRetrieveCoinRate(symbol, absClient)
+		_, err := CBRetrieveCoinRates(symbol, absClient)
 
 		assert.NotNil(t, err, "This call should have produced a read error for the response body")
 	})

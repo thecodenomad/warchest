@@ -28,8 +28,8 @@ type CoinRates struct {
 	USD float64 `json:"USD,string"`
 }
 
-// CBRetrieveCoinRate will return exchange rates for a given Crypto Currency Symbol
-func CBRetrieveCoinRate(symbol string, client HTTPClient) (CoinRates, error) {
+// CBRetrieveCoinRates will return exchange rates for a given Crypto Currency Symbol
+func CBRetrieveCoinRates(symbol string, client HTTPClient) (CoinRates, error) {
 	url := CBBaseURL + CBExchangeRateURL + "?currency=" + symbol
 
 	req, err := http.NewRequest("GET", url, nil)
