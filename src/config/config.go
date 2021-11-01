@@ -148,11 +148,11 @@ func (c *Config) ToWallet() query.Wallet {
 		coins[configTransaction.CoinSymbol] = coin
 	}
 
-	wallet := query.Wallet{[]query.WarchestCoin{}, 0.0}
+	wallet := query.Wallet{map[string]query.WarchestCoin{}, 0.0}
 	// Convert map to wallet
 	for _, coin := range coins {
 		// Create new coins from the collection above
-		wallet.Coins = append(wallet.Coins, coin)
+		wallet.Coins[coin.CoinSymbol] = coin
 	}
 
 	return wallet

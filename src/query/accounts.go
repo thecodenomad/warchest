@@ -86,7 +86,6 @@ func CBRetrieveAccounts(cbAuth auth.CBAuth, client HTTPClient) (CBAccountsResp, 
 	defer resp.Body.Close()
 
 	cResp := CBAccountsResp{}
-
 	bodyAsStr, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Printf("Failed to read body of error: %s", err)
@@ -98,75 +97,6 @@ func CBRetrieveAccounts(cbAuth auth.CBAuth, client HTTPClient) (CBAccountsResp, 
 		log.Printf("Couldn't unmarshall: %s", err)
 		return CBAccountsResp{}, ErrOnUnmarshall
 	}
-	//log.Printf("Body as string: \n%s\n", bodyAsStr)
 
 	return cResp, err
 }
-
-////UpdateRates updates a coin's current exchange rate
-//func (c *CBAccount) UpdateRates(client HTTPClient) {
-//
-//	coinInfo, err := CBRetrieveCoinRates(c.Currency.Code, client)
-//	if err != nil {
-//		log.Printf("Failed to retrieve market rates for %s\n", c.Name)
-//		// Reset instead of erroring
-//		c.CurrentRateUSD = 0.0
-//		return
-//	}
-//
-//	c.CurrentRateUSD = coinInfo.ExchangeRates.USD
-//}
-//
-////UpdateCost updates a coin's initial purchase cost from the coins transactions
-//func (c *CBAccount) UpdateCost() {
-//	totalNumCoins := 0.0
-//	totalExpense := 0.0
-//
-//	log.Printf("There are %d %s transactions in your wallet, calculating...\n", len(c.Transactions), c.Name)
-//
-//	for _, transaction := range c.Transactions {
-//		totalNumCoins += transaction.NumCoins
-//		totalExpense += transaction.NumCoins*transaction.PurchasedPrice + transaction.TransactionFee
-//	}
-//
-//	c.Amount = totalNumCoins
-//	c.Cost = totalExpense
-//}
-//
-////UpdateProfit updates a coin's net profit value
-//func (c *Coin) UpdateProfit() {
-//	currentValue := c.CurrentRateUSD*c.Amount - c.Cost
-//	c.Profit = currentValue
-//}
-//
-////Update runs all internal updates to get the latest value of a particular coin in a wallet
-//func (c *Coin) Update(client query.HTTPClient) {
-//	c.UpdateCost()
-//	c.UpdateRates(client)
-//	c.UpdateProfit()
-//}
-//
-////Banner prints out a stats banner for the coin
-//func (c *Coin) Banner() {
-//	fmt.Printf("\tCurrent rate for %s: %.6f\n", c.CoinSymbol, c.CurrentRateUSD)
-//	fmt.Printf("\tInitial Cost of %s: %.6f\n", c.CoinSymbol, c.Cost)
-//	fmt.Printf("\tTotal Amount of %s: %.6f\n", c.CoinSymbol, c.Amount)
-//	fmt.Printf("\tCurrent cost of %s: %.6f\n", c.CoinSymbol, c.Amount*c.CurrentRateUSD)
-//	fmt.Printf("\tTotal profit for %s: %.6f\n", c.CoinSymbol, c.Profit)
-//}
-//
-//// CalculateNetProfit will calculate the total profit for the coins in the provided Wallet
-//func CalculateNetProfit(wallet Wallet, client query.HTTPClient) (float64, error) {
-//	netProfit := 0.0
-//
-//	log.Printf("There are %d coin(s) in your wallet, calculating...\n", len(wallet.Coins))
-//	for _, coin := range wallet.Coins {
-//		// Make sure we have the latest rates
-//		coin.Update(client)
-//
-//		// Present stats for coin
-//		coin.Banner()
-//		netProfit += coin.Profit
-//	}
-//	return netProfit, nil
-//}

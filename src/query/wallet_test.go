@@ -5,6 +5,7 @@ import (
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/h2non/gock.v1"
+	"log"
 	"net/http"
 	"testing"
 	"time"
@@ -53,7 +54,7 @@ func TestCoin_Update(t *testing.T) {
 		0.0, CoinRates{0.0, 0.0, testRateUSD}, symbol, testTransactions}
 
 	transactionURL := "/v2/accounts/" + accountID + "/transactions"
-	fmt.Printf("Transaction URL to mock: %s\n", transactionURL)
+	log.Printf("Transaction URL to mock: %s\n", transactionURL)
 	gock.New(CBBaseURL).
 		Get(transactionURL).
 		Reply(200).
@@ -113,10 +114,10 @@ func TestCalculateNetProfit(t *testing.T) {
 	testCoin := WarchestCoin{"somethingLong", 5.0, 0.0,
 		0.0, CoinRates{USD: -10.0}, symbol, testTransactions}
 
-	wallet := Wallet{[]WarchestCoin{testCoin}, 0.0}
+	wallet := Wallet{map[string]WarchestCoin{symbol: testCoin}, 0.0}
 
 	// Criteria
-	expectedProfit := "1.990000"
+	expectedProfit := "2.99000000000000"
 
 	// Establish Mock for Exchange Rate
 	exchangeJSON := `{"data":{"currency":"ETH","rates":{"USD":"12.99","EUR":"11.99","GBP": "10.99"}}}`
@@ -128,15 +129,15 @@ func TestCalculateNetProfit(t *testing.T) {
 
 	// Establish Mock for updating transactions
 	transactionURL := "/v2/accounts/" + accountID + "/transactions"
-	fmt.Printf("Transaction URL to mock: %s\n", transactionURL)
+	log.Printf("Transaction URL to mock: %s\n", transactionURL)
 	gock.New(CBBaseURL).
 		Get(transactionURL).
 		Reply(200).
 		BodyString(transactionJSON)
 
 	// Do the things then set threshold for easier comparison of float values
-	actualResp, err := CalculateNetProfit(wallet, auth.CBAuth{}, absClient)
-	actualProfit := fmt.Sprintf("%.6f", actualResp)
+	actualResp, err := wallet.UpdateNetProfit(auth.CBAuth{}, absClient)
+	actualProfit := fmt.Sprintf("%.14f", actualResp)
 
 	// Make sure there was only 1 call to the remote API, we don't want to be banned!
 	assert.Nil(t, err, "this was mocked, and should not fail")
