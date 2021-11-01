@@ -50,6 +50,8 @@ func (w *WarchestCoin) UpdateTransactions(cbAuth auth.CBAuth, client HTTPClient)
 
 	for _, cbTransaction := range transactions {
 		fmt.Printf("Adding transaction for %s\n", cbTransaction.Amount.Currency)
+		fmt.Printf("NumCoins: %.6f\n", cbTransaction.Amount.Amount)
+		fmt.Printf("PurchasedPrices: %.6f\n", cbTransaction.NativeAmount.Amount)
 		coinTransactions = append(coinTransactions, cbTransaction.ToCoinTransaction())
 	}
 	w.Transactions = coinTransactions
@@ -83,7 +85,10 @@ func (w *WarchestCoin) UpdateCost() {
 
 	for _, transaction := range w.Transactions {
 		totalNumCoins += transaction.NumCoins
-		totalExpense += transaction.NumCoins*transaction.PurchasedPrice + transaction.TransactionFee
+		// CB API - fee is in the total price
+
+		// TODO: need 'purchased rate' instead
+		totalExpense += transaction.PurchasedPrice
 	}
 
 	w.Amount = totalNumCoins

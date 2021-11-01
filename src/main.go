@@ -65,9 +65,11 @@ func main() {
 	accountsResp, _ := query.CBRetrieveAccounts(cbAuth, absClient)
 
 	// Filter out non-zero amount of individual coin types
+	// Restrict to DOGE for testing reasons. This is the devel branch -P
 	valueMap := map[string]query.WarchestCoin{}
 	for _, account := range accountsResp.Accounts {
-		if account.Balance.Amount > 0.0 {
+		if account.Balance.Amount > 0.0 &&
+			account.Currency.Code == "DOGE" {
 			warchestCoin := query.WarchestCoin{AccountID: account.ID, CoinSymbol: account.Currency.Code}
 
 			// Update the coin's rates, profit, and cost
