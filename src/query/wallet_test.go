@@ -14,15 +14,10 @@ import (
 func TestCoinUpdateProfit(t *testing.T) {
 
 	symbol := "ETH"
-	transactions := []CoinTransaction{
-		{1.0, 2.0, 3.0}, // $5 cost
-		{4.0, 5.0, 6.0}, // $26 cost
-	}
-
 	testRateUSD := 30.0
-	expectedNetProfit := 5*testRateUSD - (1.0*2.0 + 3.0 + 4.0*5.0 + 6.0)
-	testCoin := WarchestCoin{"somethingLong", 5.0, 0.0,
-		0.0, CoinRates{0.0, 0.0, testRateUSD}, symbol, transactions}
+	testCoin := WarchestCoin{"somethingLong", 50.0, 5.0,
+		0.0, CoinRates{0.0, 0.0, testRateUSD}, symbol, []CoinTransaction{}}
+	expectedNetProfit := 5*testRateUSD - 50
 
 	testCoin.UpdateProfit()
 
@@ -52,9 +47,17 @@ func TestCoin_Update(t *testing.T) {
 	testCost := 10.0
 	testFee := 1.0
 	testRateUSD := 30.0
+	accountID := "somethingLong"
 	testTransactions := []CoinTransaction{{testAmount, testCost, testFee}}
 	testCoin := WarchestCoin{"somethingLong", 5.0, 0.0,
 		0.0, CoinRates{0.0, 0.0, testRateUSD}, symbol, testTransactions}
+
+	transactionURL := "/v2/accounts/" + accountID + "/transactions"
+	fmt.Printf("Transaction URL to mock: %s\n", transactionURL)
+	gock.New(CBBaseURL).
+		Get(transactionURL).
+		Reply(200).
+		BodyString(transactionJSON)
 
 	// Set Expectations for dem noty bits
 	expectedRate := 12.99
@@ -105,6 +108,7 @@ func TestCalculateNetProfit(t *testing.T) {
 	testAmount := 1.0
 	testCost := 10.0
 	testFee := 1.0
+	accountID := "somethingLong"
 	testTransactions := []CoinTransaction{{testAmount, testCost, testFee}}
 	testCoin := WarchestCoin{"somethingLong", 5.0, 0.0,
 		0.0, CoinRates{USD: -10.0}, symbol, testTransactions}
@@ -114,13 +118,21 @@ func TestCalculateNetProfit(t *testing.T) {
 	// Criteria
 	expectedProfit := "1.990000"
 
-	// Establish Mock
-	json := `{"data":{"currency":"ETH","rates":{"USD":"12.99","EUR":"11.99","GBP": "10.99"}}}`
+	// Establish Mock for Exchange Rate
+	exchangeJSON := `{"data":{"currency":"ETH","rates":{"USD":"12.99","EUR":"11.99","GBP": "10.99"}}}`
 	defer gock.Off()
 	gock.New(CBBaseURL).
 		Get(CBExchangeRateURL).
 		Reply(200).
-		BodyString(json)
+		BodyString(exchangeJSON)
+
+	// Establish Mock for updating transactions
+	transactionURL := "/v2/accounts/" + accountID + "/transactions"
+	fmt.Printf("Transaction URL to mock: %s\n", transactionURL)
+	gock.New(CBBaseURL).
+		Get(transactionURL).
+		Reply(200).
+		BodyString(transactionJSON)
 
 	// Do the things then set threshold for easier comparison of float values
 	actualResp, err := CalculateNetProfit(wallet, auth.CBAuth{}, absClient)
@@ -130,3 +142,44 @@ func TestCalculateNetProfit(t *testing.T) {
 	assert.Nil(t, err, "this was mocked, and should not fail")
 	assert.Equal(t, expectedProfit, actualProfit, "should be the same")
 }
+
+const transactionJSON = `{
+	"pagination": {
+		"ending_before": null,
+		"starting_after": null,
+		"limit": 25,
+		"order": "desc",
+		"previous_uri": null,
+		"next_uri": null
+	},
+	"data": [
+		{
+			"id": "4117f7d6-5694-5b36-bc8f-847509850ea4",
+			"type": "buy",
+			"status": "completed",
+			"amount": {
+				"amount": "1.00",
+				"currency": "ETH"
+			},
+			"native_amount": {
+				"amount": "11.00",
+				"currency": "USD"
+			},
+			"description": null,
+			"created_at": "2015-03-26T23:44:08-07:00",
+			"updated_at": "2015-03-26T23:44:08-07:00",
+			"resource": "transaction",
+			"resource_path": "/v2/accounts/somethingLong/transactions/4117f7d6-5694-5b36-bc8f-847509850ea4",
+			"buy": {
+				"id": "9e14d574-30fa-5d85-b02c-6be0d851d61d",
+				"resource": "buy",
+				"resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/buys/9e14d574-30fa-5d85-b02c-6be0d851d61d"
+			},
+			"details": {
+				"title": "Bought ETH",
+				"subtitle": "Used some account"
+			}
+		}
+	]
+}
+`

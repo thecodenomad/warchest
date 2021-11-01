@@ -46,7 +46,10 @@ func (w *WarchestCoin) UpdateTransactions(cbAuth auth.CBAuth, client HTTPClient)
 
 	coinTransactions := []CoinTransaction{}
 
+	fmt.Printf("There are %d transactions for %s\n", len(transactions), w.CoinSymbol)
+
 	for _, cbTransaction := range transactions {
+		fmt.Printf("Adding transaction for %s\n", cbTransaction.Amount.Currency)
 		coinTransactions = append(coinTransactions, cbTransaction.ToCoinTransaction())
 	}
 	w.Transactions = coinTransactions
@@ -89,6 +92,9 @@ func (w *WarchestCoin) UpdateCost() {
 
 //UpdateProfit updates a coin's net profit value
 func (w *WarchestCoin) UpdateProfit() {
+	fmt.Printf("USD Rate: %.6f\n", w.Rates.USD)
+	fmt.Printf("Amount: %.6f\n", w.Amount)
+	fmt.Printf("Cost: %.6f\n", w.Cost)
 	currentValue := w.Rates.USD*w.Amount - w.Cost
 	w.Profit = currentValue
 }
