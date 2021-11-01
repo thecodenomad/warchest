@@ -29,6 +29,21 @@ const CbAPIKey = "CB_API_KEY"
 // CbAPISecret is the secret associated with the cbAPIKey
 const CbAPISecret = "CB_API_SECRET"
 
+// getSupportedCoins is an internal helper function that returns the currently supported coins for warchest
+// TODO: this list will expand, this is just a way of bypassing coins that may have interest accruing
+func getSupportedCoins() []string {
+	return []string{"DOGE", "SHIB"}
+}
+
+func IsSupportedCoin(coinSymbol string, supportedCoins []string) bool {
+	for _, supportedCoin := range supportedCoins {
+		if coinSymbol == supportedCoin {
+			return true
+		}
+	}
+	return false
+}
+
 func main() {
 
 	// Args
@@ -39,6 +54,9 @@ func main() {
 	// Parse the argument flags
 	flag.Parse()
 
+	// Helper vars
+	supportedCoins := getSupportedCoins()
+
 	client := http.Client{
 		Timeout: time.Second * 10,
 	}
@@ -48,14 +66,6 @@ func main() {
 	fmt.Println("Server enabled:", *serverPtr)
 	fmt.Println("Save enabled:", *savePtr)
 	fmt.Println("Transaction type:", *transactionTypePtr)
-
-	//filepath := os.Getenv(WarchestConfigEnv)
-	//configFile := config.ConfigFile{Filepath: filepath}
-	//warchestConfig, err := configFile.ToConfig()
-	//if err != nil {
-	//	fmt.Printf("Failed loading config: %s\n", err)
-	//	os.Exit(FailedLoadConfigRC)
-	//}
 
 	apiKey := os.Getenv(CbAPIKey)
 	apiSecret := os.Getenv(CbAPISecret)
@@ -68,13 +78,14 @@ func main() {
 	// Restrict to DOGE for testing reasons. This is the devel branch -P
 	valueMap := map[string]query.WarchestCoin{}
 	for _, account := range accountsResp.Accounts {
-		if account.Balance.Amount > 0.0 &&
-			account.Currency.Code == "DOGE" {
-			warchestCoin := query.WarchestCoin{AccountID: account.ID, CoinSymbol: account.Currency.Code}
+		if IsSupportedCoin(account.Currency.Code, supportedCoins) {
+			if account.Balance.Amount > 0.0 {
+				warchestCoin := query.WarchestCoin{AccountID: account.ID, CoinSymbol: account.Currency.Code}
 
-			// Update the coin's rates, profit, and cost
-			warchestCoin.Update(cbAuth, absClient)
-			valueMap[account.Currency.Code] = warchestCoin
+				// Update the coin's rates, profit, and cost
+				warchestCoin.Update(cbAuth, absClient)
+				valueMap[account.Currency.Code] = warchestCoin
+			}
 		}
 	}
 
@@ -82,9 +93,10 @@ func main() {
 	fmt.Printf("You have %d type(s) of coin(s) in your wallet:\n", len(valueMap))
 	for _, wcCoin := range valueMap {
 		fmt.Printf("\t%s\n", wcCoin.CoinSymbol)
-		fmt.Printf("\t\tAmount: %.6f\n", wcCoin.Amount)
+		fmt.Printf("\t\tNum Coins: %.6f\n", wcCoin.Amount)
 		fmt.Printf("\t\tCost: %.6f\n", wcCoin.Cost)
 		fmt.Printf("\t\tProfit: %.6f\n", wcCoin.Profit)
+		fmt.Printf("\t\tCurrent Value: %.6f\n", wcCoin.Amount*wcCoin.Rates.USD)
 	}
 
 	fmt.Printf("\nUpdating crypto wallet for id: %s\n", userID)
