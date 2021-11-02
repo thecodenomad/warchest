@@ -53,7 +53,9 @@ jobs:
 
       - name: Checkout latest version of warchest-ui if there is one
         run: |
-          git submodule update --remote warchest-ui
+          git submodule update --remote warchest-ui && \
+          git commit -m "Updating to latest version of warchest-ui" || \\
+          echo "No new warchest-ui changes."
 
       - name: Archive test results
         if: always()
