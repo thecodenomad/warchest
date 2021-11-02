@@ -53,8 +53,11 @@ jobs:
 
       - name: Checkout latest version of warchest-ui if there is one
         run: |
-          git submodule update --remote warchest-ui && \
-          git commit -m "Updating to latest version of warchest-ui" || \\
+          git config --global user.email "thecodenomad@users.noreply.github.com"
+          git config --global user.name "Actioneer"
+          git submodule update --init --remote warchest-ui && \
+          git commit -m "Updating to latest version of warchest-ui" && \
+          git push || \
           echo "No new warchest-ui changes."
 
       - name: Archive test results
