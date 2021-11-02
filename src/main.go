@@ -125,7 +125,7 @@ func main() {
 	//for _, account := range accountsResp.Accounts {
 	//	if IsSupportedCoin(account.Currency.Code, supportedCoins) {
 	//		if account.Balance.Amount > 0.0 {
-	//			warchestCoin := query.WarchestCoin{AccountID: account.ID, CoinSymbol: account.Currency.Code}
+	//			warchestCoin := query.WarchestCoin{AccountID: account.ID, Symbol: account.Currency.Code}
 	//
 	//			// Update the coin's rates, profit, and cost
 	//			warchestCoin.Update(cbAuth, absClient)

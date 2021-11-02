@@ -22,14 +22,14 @@ type WarchestCoin struct {
 	Cost         float64           `json:"cost"`
 	Amount       float64           `json:"amount"`
 	Profit       float64           `json:"profit"`
-	Rates        CoinRates         `json:"coin_rates"`
-	CoinSymbol   string            `json:"coin_symbol""`
+	Rates        CoinRates         `json:"rates"`
+	Symbol       string            `json:"symbol""`
 	Transactions []CoinTransaction `json:"transactions"`
 }
 
 // CoinTransaction is an individual transaction made for a given type of coin
 type CoinTransaction struct {
-	NumCoins       float64 `json:"num_couns"`
+	NumCoins       float64 `json:"num_coins"`
 	PurchasedPrice float64 `json:"purchased_price"`
 	TransactionFee float64 `json:"transaction_fee"`
 }
@@ -43,7 +43,7 @@ func getSupportedCoins() []string {
 func (w *WarchestCoin) IsSupportedCoin() bool {
 	supportedCoins := getSupportedCoins()
 	for _, supportedCoin := range supportedCoins {
-		if w.CoinSymbol == supportedCoin {
+		if w.Symbol == supportedCoin {
 			return true
 		}
 	}
@@ -61,7 +61,7 @@ func (w *WarchestCoin) UpdateTransactions(cbAuth auth.CBAuth, client HTTPClient)
 
 	coinTransactions := []CoinTransaction{}
 
-	log.Printf("There are %d transactions for %s\n", len(transactions), w.CoinSymbol)
+	log.Printf("There are %d transactions for %s\n", len(transactions), w.Symbol)
 
 	for _, cbTransaction := range transactions {
 		log.Printf("Adding transaction for %s\n", cbTransaction.Amount.Currency)
@@ -75,9 +75,9 @@ func (w *WarchestCoin) UpdateTransactions(cbAuth auth.CBAuth, client HTTPClient)
 //UpdateRates updates a coin's current exchange rate
 func (w *WarchestCoin) UpdateRates(client HTTPClient) {
 
-	coinRates, err := CBRetrieveCoinRates(w.CoinSymbol, client)
+	coinRates, err := CBRetrieveCoinRates(w.Symbol, client)
 	if err != nil {
-		log.Printf("Failed to retrieve market rates for %s\n", w.CoinSymbol)
+		log.Printf("Failed to retrieve market rates for %s\n", w.Symbol)
 		// Reset instead of erroring
 		w.Rates.EUR = 0.0
 		w.Rates.GBP = 0.0
@@ -123,11 +123,11 @@ func (w *WarchestCoin) Update(cbAuth auth.CBAuth, client HTTPClient) {
 
 //Banner prints out a stats banner for the coin
 func (w *WarchestCoin) Banner() {
-	log.Printf("\tCurrent rate for %s: %.14f\n", w.CoinSymbol, w.Rates.USD)
-	log.Printf("\tInitial Cost of %s: %.14f\n", w.CoinSymbol, w.Cost)
-	log.Printf("\tTotal Amount of %s: %.14f\n", w.CoinSymbol, w.Amount)
-	log.Printf("\tCurrent cost of %s: %.14f\n", w.CoinSymbol, w.Amount*w.Rates.USD)
-	log.Printf("\tTotal profit for %s: %.14f\n", w.CoinSymbol, w.Profit)
+	log.Printf("\tCurrent rate for %s: %.14f\n", w.Symbol, w.Rates.USD)
+	log.Printf("\tInitial Cost of %s: %.14f\n", w.Symbol, w.Cost)
+	log.Printf("\tTotal Amount of %s: %.14f\n", w.Symbol, w.Amount)
+	log.Printf("\tCurrent cost of %s: %.14f\n", w.Symbol, w.Amount*w.Rates.USD)
+	log.Printf("\tTotal profit for %s: %.14f\n", w.Symbol, w.Profit)
 }
 
 // UpdateNetProfit will calculate the total profit for the coins in the provided Wallet
@@ -142,7 +142,7 @@ func (w *Wallet) UpdateNetProfit(cbAuth auth.CBAuth, client HTTPClient) (float64
 			coin.UpdateTransactions(cbAuth, client)
 		}
 
-		log.Printf("Updating Cost, Current Rates, and Profit for %s", coin.CoinSymbol)
+		log.Printf("Updating Cost, Current Rates, and Profit for %s", coin.Symbol)
 		// Make sure cost is calculated
 		coin.UpdateCost()
 
@@ -190,13 +190,13 @@ func GetWarchestCoins(cbAuth auth.CBAuth, client HTTPClient) (map[string]Warches
 			Amount:       0.0,
 			Profit:       0.0,
 			Rates:        CoinRates{},
-			CoinSymbol:   account.Currency.Code,
+			Symbol:       account.Currency.Code,
 			Transactions: []CoinTransaction{},
 		}
 
 		// Check if this is a supported coin first
 		if !coinToAdd.IsSupportedCoin() {
-			log.Printf("Skipping unsupported coin: %s\n", coinToAdd.CoinSymbol)
+			log.Printf("Skipping unsupported coin: %s\n", coinToAdd.Symbol)
 			continue
 		}
 
@@ -205,7 +205,7 @@ func GetWarchestCoins(cbAuth auth.CBAuth, client HTTPClient) (map[string]Warches
 		coinToAdd.Update(cbAuth, client)
 
 		// Add to the map!
-		log.Printf("Adding coin %s to the list of coins", coinToAdd.CoinSymbol)
+		log.Printf("Adding coin %s to the list of coins", coinToAdd.Symbol)
 		coins[account.Currency.Code] = coinToAdd
 	}
 

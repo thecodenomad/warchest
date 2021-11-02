@@ -152,7 +152,7 @@ func (c *Config) ToWallet() query.Wallet {
 	// Convert map to wallet
 	for _, coin := range coins {
 		// Create new coins from the collection above
-		wallet.Coins[coin.CoinSymbol] = coin
+		wallet.Coins[coin.Symbol] = coin
 	}
 
 	return wallet
