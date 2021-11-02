@@ -40,6 +40,7 @@ func getSupportedCoins() []string {
 	return []string{"DOGE", "SHIB"}
 }
 
+// IsSupportedCoin is a helper method to determine if a coin is supported or not
 func (w *WarchestCoin) IsSupportedCoin() bool {
 	supportedCoins := getSupportedCoins()
 	for _, supportedCoin := range supportedCoins {
