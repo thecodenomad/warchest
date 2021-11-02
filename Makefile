@@ -25,8 +25,9 @@ covtest: clean
 covreport: clean covtest
 	go tool cover -html=coverage.out -o coverage.html
 
-deploy: build
-	# docker status
+docker: build
+	docker build . -f Dockerfile --tag warchest
+	docker run -it -p 8080:8080 warchest:latest
 
 test:
 	go test ./... -v
