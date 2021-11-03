@@ -7,11 +7,13 @@
 #############################
 # WARCHEST_CONFIG="${WARCHEST_CONFIG:=$(pwd)/src/config/testdata/CoinConfig.json}"
 
+TOPDIR := ${CURDIR}
+
 #############################
 # Make Targets              #
 #############################
 
-all: clean test build deploy
+all: clean test build
 
 build:
 	go build -o warchest src/main.go
@@ -27,7 +29,9 @@ covreport: clean covtest
 
 docker: build
 	docker build . -f Dockerfile --tag warchest
-	docker run -it -p 8080:8080 warchest:latest
 
 test:
 	go test ./... -v
+
+L3: docker
+	${TOPDIR}/scripts/test_setup.sh
