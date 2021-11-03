@@ -33,5 +33,5 @@ docker: build
 test:
 	go test ./... -v
 
-L3: docker
+L2: docker
 	${TOPDIR}/scripts/test_setup.sh
