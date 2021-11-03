@@ -6,46 +6,49 @@ TEST_CONTAINER_NAME="infantry"
 
 function build_test_container() {
   echo "Building test container - ${TOPDIR}"
-  docker build -t ${TEST_CONTAINER_NAME} --file ${TOPDIR}/docker/Dockerfile.python .
+  docker build -t ${TEST_CONTAINER_NAME} --file ${TOPDIR}/docker/Dockerfile.python . &> /dev/null
 }
 
 # TODO: Add ebash!
 function create_docker_network() {
   echo "Creating warchest-net network"
-  docker network create --driver bridge "${DEFAULT_NETWORK_NAME}" && echo "Network ${DEFAULT_NETWORK_NAME} created"
+  docker network create --driver bridge "${DEFAULT_NETWORK_NAME}" &> /dev/null
+  echo "Network ${DEFAULT_NETWORK_NAME} created"
 }
 
 function remove_docker_network() {
   echo "Removing warchest-net network"
-  docker network remove "${DEFAULT_NETWORK_NAME}" && echo "Network ${DEFAULT_NETWORK_NAME} removed"
+  docker network remove "${DEFAULT_NETWORK_NAME}" &> /dev/null
+  echo "Network ${DEFAULT_NETWORK_NAME} removed"
 }
 
 function start_warchest_container() {
-  docker run -d --name "${WC_CONTAINER_NAME}" --network "${DEFAULT_NETWORK_NAME}" --publish 8080:8080 "warchest:latest"
+  docker run -d --name "${WC_CONTAINER_NAME}" --network "${DEFAULT_NETWORK_NAME}" --publish 8080:8080 "warchest:latest" &> /dev/null
 }
 
 function cleanup(){
-  cypress_id=$(docker ps -q --no-trunc --format="{{.ID}}" --filter "name=${TEST_CONTAINER_NAME}")
+  infantry_id=$(docker ps -q --no-trunc --format="{{.ID}}" --filter "name=${TEST_CONTAINER_NAME}")
   warchest_id=$(docker ps -q --no-trunc --format="{{.ID}}" --filter "name=${WC_CONTAINER_NAME}")
 
-  if [ -n "${cypress_id}" ]; then
-    echo "Stopping Cypress container"
-    docker container stop ${cypress_id}
-    docker container rm ${cypress_id}
+  if [ -n "${infantry_id}" ]; then
+    docker container stop ${TEST_CONTAINER_NAME} &> /dev/null
+    docker container rm ${TEST_CONTAINER_NAME} &> /dev/null
   else
-    echo "Cypress container not found!"
+    docker container rm ${TEST_CONTAINER_NAME} &> /dev/null
   fi
 
   if [ -n "${warchest_id}" ]; then
-    echo "Stopping Warchest container"
-    docker container stop ${warchest_id}
-    docker container rm ${warchest_id}
+    docker container stop ${WC_CONTAINER_NAME} &> /dev/null
+    docker container rm ${WC_CONTAINER_NAME} &> /dev/null
   else
-    echo "Warchest container not found!"
+    docker container rm ${WC_CONTAINER_NAME} &> /dev/null
   fi
 
   remove_docker_network
 }
+
+# Make sure there is a clean state
+cleanup
 
 # Setup docker network
 create_docker_network
