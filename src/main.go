@@ -156,7 +156,9 @@ func main() {
 
 		router := gin.Default()
 		router.Static("/static", staticPath)
-		router.StaticFile("/favicon.ico", staticPath+"/favicon.ico")
+		router.Static("/js", staticPath+"/js")
+		router.Static("/css", staticPath+"/css")
+		//router.StaticFile("/favicon.ico", staticPath+"/favicon.ico")
 
 		// Simple API to check if server is working correctly
 		router.GET("/api/ping", func(c *gin.Context) {

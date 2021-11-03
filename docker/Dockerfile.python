@@ -1,0 +1,47 @@
+FROM python:latest
+ENV SRC_FOLDER=/code
+
+RUN apt-get update -y
+
+# Install dependencies
+RUN apt-get install -y chromium     \
+                       curl         \
+                       firefox-esr  \
+                       libgconf-2-4 \
+                       libxi6       \
+                       unzip        \
+                       wget         \
+                       xvfb
+
+# Install webdriver for Firefox
+# TODO: Make version an ARG
+RUN wget https://github.com/mozilla/geckodriver/releases/download/v0.30.0/geckodriver-v0.30.0-linux64.tar.gz
+RUN tar -xvzf geckodriver*
+RUN chmod +x geckodriver
+RUN mv geckodriver /usr/local/bin/
+RUN export GECKODRIVER=$PATH:/user/local/bin/geckodriver
+
+# Install webdriver for Chrome
+# TODO: Make version an ARG
+RUN wget -O /tmp/chromedriver.zip http://chromedriver.storage.googleapis.com/`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE`/chromedriver_linux64.zip
+RUN unzip /tmp/chromedriver.zip chromedriver -d /usr/local/bin/
+
+# Install selenium
+RUN pip3 install selenium
+
+# Setup working directory
+WORKDIR /code
+
+# Configure display (reference: https://github.com/seleniumbase/SeleniumBase/blob/master/Dockerfile)
+# TODO: Make resolution configurable via ENV variable
+RUN set -e
+RUN Xvfb -ac :99 -screen 0 1280x1024x16 > /dev/null 2>&1 &
+RUN export DISPLAY=:99
+RUN exec "$@"
+
+# Install any additional python requirements
+COPY . /code
+RUN pip install -r /code/tests/requirements.txt
+
+# Execute the L2 tests
+CMD pytest /code/tests/L2/test*.py
