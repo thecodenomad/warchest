@@ -29,9 +29,6 @@ RUN unzip /tmp/chromedriver.zip chromedriver -d /usr/local/bin/
 # Install selenium
 RUN pip3 install selenium
 
-# Setup working directory
-WORKDIR /code
-
 # Configure display (reference: https://github.com/seleniumbase/SeleniumBase/blob/master/Dockerfile)
 # TODO: Make resolution configurable via ENV variable
 RUN set -e
@@ -39,8 +36,13 @@ RUN Xvfb -ac :99 -screen 0 1280x1024x16 > /dev/null 2>&1 &
 RUN export DISPLAY=:99
 RUN exec "$@"
 
-# Install any additional python requirements
+# Needz the codez
 COPY . /code
+
+# Setup working directory
+WORKDIR /code
+
+# Install any additional python requirements
 RUN pip install -r /code/tests/requirements.txt
 
 # Execute the L2 tests
