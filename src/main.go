@@ -163,6 +163,7 @@ func main() {
 		router.Static("/static", staticPath)
 		router.Static("/js", staticPath+"/js")
 		router.Static("/css", staticPath+"/css")
+		router.Static("/img", staticPath+"/img")
 		//router.StaticFile("/favicon.ico", staticPath+"/favicon.ico")
 
 		// Simple API to check if server is working correctly
@@ -174,7 +175,7 @@ func main() {
 
 		// Setup redirect for static files
 		router.GET("/", func(c *gin.Context) {
-			c.Redirect(301, "/static/index.html")
+			c.Redirect(301, "/index.html")
 		})
 
 		// Setup Basic call to retrieve wallet
