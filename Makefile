@@ -30,6 +30,9 @@ covreport: clean covtest
 docker: build
 	docker build . -f Dockerfile --tag warchest
 
+run: docker
+	docker run -p 8080:8080 warchest:latest
+
 test:
 	go test ./... -v
 
