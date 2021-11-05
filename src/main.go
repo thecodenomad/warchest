@@ -175,7 +175,7 @@ func main() {
 
 		// Setup redirect for static files
 		router.GET("/", func(c *gin.Context) {
-			c.Redirect(301, "/index.html")
+			c.Redirect(301, "/static/index.html")
 		})
 
 		// Setup Basic call to retrieve wallet
