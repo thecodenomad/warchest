@@ -9,12 +9,44 @@ The purpose of this app is to retrieve stats based on cryptocurrency holdings to
 
 ## Building
 
-Assuming `make` and `golang >= 1.16` are installed, then just run `make`
+Assuming `make` and `golang >= 1.16` are installed, then just run:
 
-## Executing 
+`make`
 
-Before you can run the binary, you will need to create a config file that includes all of the transactions
-that have been made for all the coins in your wallet. See the below for formatting.
+## Contained Execution 
+
+To spin up a docker container that includes a running version of the service, run:
+
+`make run`
+
+Your service will be available at http://localhost:8080/
+
+# Testing
+
+## Unittests
+Go Gadget Go! Go test!
+
+`make test`
+
+## Integration and Beyond tests
+Placeholder buckets that have a few tests enabling quicker test building.
+
+### L2
+L2 testing for this project includes the verification of API responses.
+
+`make L2`
+
+### L3 (WIP)
+L3 testing for this project will include a higher level test using cypress or selenium
+
+`make L3`
+
+# WIP
+
+## Configuration
+
+Configs are still a work in progress, ideally the coins and their transactions should be saved each
+time they are pulled from the API. 
 
 ### Example Config
 A full example of a config can be seen below:
