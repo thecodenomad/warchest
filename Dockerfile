@@ -1,6 +1,6 @@
 FROM golang:latest
 
-RUN apt-get update -y && apt-get install -y make nodejs npm
+RUN apt-get update -y && apt-get install -y make nodejs npm git
 
 # Copy all the bits
 COPY . /code
@@ -16,6 +16,7 @@ RUN export NODE_OPTIONS=--openssl-legacy-provider
 RUN cd /code/warchest-ui && \
     # Install node dependencies
     npm install
+
 
 RUN cd /code/warchest-ui && \
     # Build the uil into dist/

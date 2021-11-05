@@ -28,6 +28,9 @@ covreport: clean covtest
 	go tool cover -html=coverage.out -o coverage.html
 
 docker: build
+	# Populate submodule
+	git submodule update --init --remote warchest-ui
+	# Build the bits
 	docker build . -f Dockerfile --tag warchest
 
 run: build docker

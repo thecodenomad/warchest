@@ -92,3 +92,6 @@ Updating crypto wallet
         Total profit for DOGE: 0.0
 Current Wallet's Net Profit: 0.0
 ```
+
+# NOTE: Take in an api key env into the make run for the docker execution, and in the example here specifying
+# api-key="none" will result in a demo config being loaded.
