@@ -12,13 +12,13 @@ RUN make build
 
 RUN export NODE_OPTIONS=--openssl-legacy-provider
 
+# Make sure folder for static files exists
+RUN mkdir -p /code/public
+
 # Build the UI and copy the build to the staticly served folder
 RUN cd /code/warchest-ui && \
     # Install node dependencies
-    npm install
-
-
-RUN cd /code/warchest-ui && \
+    npm install && \
     # Build the uil into dist/
     npm run build && \
     cp -r dist/* /code/public/
