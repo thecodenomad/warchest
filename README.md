@@ -12,9 +12,7 @@ The purpose of this app is to retrieve stats based on cryptocurrency holdings to
 This Readme assumes `make`, `docker` and `golang >= 1.16` are installed. Strictly speaking only `golang >= 1.16` is 
 required, but that isn't very production-like is it?
 
-## Building
-
-Just run:
+### Building
 
 `make`
 
@@ -31,7 +29,7 @@ with the api key, and then proceed to calculate the total net profit for the sup
 SHIB).
 
 > NOTE: `WARCHEST_CONFIG` is meant to skip the querying of available coins' transactions.
-> this is still a WIP and doesn't do anything helpful for execution (only useful for dev).
+> This is still a WIP and doesn't do anything helpful for execution (only useful for dev).
 
 There is also a Makefile target to help make execution easier:
 
@@ -47,7 +45,7 @@ the config `src/config/testdata/CoinConfig.json`.
 If the server flag has been passed in, then the server will start in Demo mode providing a UI representation of the
 demo config.
 
-Additionally, there is a make target:
+Additionally, there is a Makefile target:
 
 `make demo`
 
