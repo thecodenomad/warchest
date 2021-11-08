@@ -37,7 +37,7 @@ run: build docker
 	docker run -p 8080:8080 warchest:latest
 
 demo: build docker
-	docker run --env WARCHES_CONFIG=demo -p 8080:8080 warchest:latest
+	docker run --env CB_API_KEY=demo -p 8080:8080 warchest:latest
 
 test:
 	go test ./... -v
