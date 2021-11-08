@@ -35,10 +35,10 @@ docker: build
 	# Build the bits
 	docker build . -f Dockerfile --tag warchest
 
-run: build docker
+run: docker
 	docker run -v ${TOPDIR}/logs:/code/logs --env CB_API_KEY=${CB_API_KEY} --env CB_API_SECRET=${CB_API_SECRET} -p 8080:8080 warchest:latest
 
-demo: build docker
+demo: docker
 	docker run -v ${TOPDIR}/logs:/code/logs --env CB_API_KEY=demo -p 8080:8080 warchest:latest
 
 test:
