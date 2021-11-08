@@ -30,13 +30,11 @@ anything helpful for execution (only useful for dev).
 
 There is also a makefile target to help make execution easier:
 
-To spin up a docker container that includes a running version of the service, run:
-
 `make run`
 
 Your service will be available at http://localhost:8080/
 
-### Demo mode
+## Demo mode
 
 If `CB_API_KEY=demo` when executing the binary, the command line utility will return the calculations provided by
 the config `src/config/testdata/CoinConfig.json`. 
