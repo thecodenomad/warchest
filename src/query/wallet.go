@@ -23,8 +23,9 @@ type WarchestCoin struct {
 	Amount       float64           `json:"amount"`
 	Profit       float64           `json:"profit"`
 	Rates        CoinRates         `json:"rates"`
-	Symbol       string            `json:"symbol""`
+	Symbol       string            `json:"symbol"`
 	Transactions []CoinTransaction `json:"transactions"`
+	Image        string            `json:"image_uri"`
 }
 
 // CoinTransaction is an individual transaction made for a given type of coin
@@ -128,6 +129,21 @@ func (w *WarchestCoin) Update(cbAuth auth.CBAuth, client HTTPClient, demoMode bo
 	w.UpdateCost()
 	w.UpdateRates(client)
 	w.UpdateProfit()
+
+	// Set the URI path for coin's image
+	// TODO: This should probably be it's own method
+	switch w.Symbol {
+	case "ETH":
+		w.Image = "eth.png"
+	case "ALGO":
+		w.Image = "algo.png"
+	case "DOGE":
+		w.Image = "doge.png"
+	case "SHIB":
+		w.Image = "shib.png"
+	default:
+		w.Image = ""
+	}
 }
 
 //Banner prints out a stats banner for the coin

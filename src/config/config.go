@@ -133,7 +133,7 @@ func (c *Config) ToWallet() query.Wallet {
 		coin, ok := coins[coinSymbol]
 		if !ok {
 			coinToInit := query.WarchestCoin{"", 0.0, 0.0, 0.0, query.CoinRates{},
-				coinSymbol, []query.CoinTransaction{}}
+				coinSymbol, []query.CoinTransaction{}, ""}
 
 			coins[configTransaction.CoinSymbol] = coinToInit
 

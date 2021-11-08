@@ -17,7 +17,7 @@ func TestCoinUpdateProfit(t *testing.T) {
 	symbol := "ETH"
 	testRateUSD := 30.0
 	testCoin := WarchestCoin{"somethingLong", 50.0, 5.0,
-		0.0, CoinRates{0.0, 0.0, testRateUSD}, symbol, []CoinTransaction{}}
+		0.0, CoinRates{0.0, 0.0, testRateUSD}, symbol, []CoinTransaction{}, ""}
 	expectedNetProfit := 5*testRateUSD - 50
 
 	testCoin.UpdateProfit()
@@ -51,7 +51,7 @@ func TestCoin_Update(t *testing.T) {
 	accountID := "somethingLong"
 	testTransactions := []CoinTransaction{{testAmount, testCost, testFee}}
 	testCoin := WarchestCoin{"somethingLong", 5.0, 0.0,
-		0.0, CoinRates{0.0, 0.0, testRateUSD}, symbol, testTransactions}
+		0.0, CoinRates{0.0, 0.0, testRateUSD}, symbol, testTransactions, ""}
 
 	transactionURL := "/v2/accounts/" + accountID + "/transactions"
 	log.Printf("Transaction URL to mock: %s\n", transactionURL)
@@ -86,7 +86,7 @@ func TestCoin_UpdateRates_Cloudy(t *testing.T) {
 	expectedResp := 0.0
 	testTransactions := []CoinTransaction{}
 	testCoin := WarchestCoin{"somethingLong", 5.0, 0.0,
-		0.0, CoinRates{USD: -10.0}, symbol, testTransactions}
+		0.0, CoinRates{USD: -10.0}, symbol, testTransactions, ""}
 
 	// Update the rates, but since there is an error we should _silently_ ignore and leave the rate at 0
 	// TODO: better error handling around requests maybe needed
@@ -112,7 +112,7 @@ func TestCalculateNetProfit(t *testing.T) {
 	accountID := "somethingLong"
 	testTransactions := []CoinTransaction{{testAmount, testCost, testFee}}
 	testCoin := WarchestCoin{"somethingLong", 5.0, 0.0,
-		0.0, CoinRates{USD: -10.0}, symbol, testTransactions}
+		0.0, CoinRates{USD: -10.0}, symbol, testTransactions, ""}
 
 	wallet := Wallet{map[string]WarchestCoin{symbol: testCoin}, 0.0}
 
