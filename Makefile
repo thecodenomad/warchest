@@ -8,6 +8,8 @@
 # WARCHEST_CONFIG="${WARCHEST_CONFIG:=$(pwd)/src/config/testdata/CoinConfig.json}"
 
 TOPDIR := ${CURDIR}
+CB_API_KEY := ${CB_API_KEY}
+CB_API_SECRET := ${CB_API_SECRET}
 
 #############################
 # Make Targets              #
@@ -34,7 +36,7 @@ docker: build
 	docker build . -f Dockerfile --tag warchest
 
 run: build docker
-	docker run -p 8080:8080 warchest:latest
+	docker run --env CB_API_KEY=${CB_API_KEY} --env CB_API_SECRET=${CB_API_SECRET} -p 8080:8080 warchest:latest
 
 demo: build docker
 	docker run --env CB_API_KEY=demo -p 8080:8080 warchest:latest
