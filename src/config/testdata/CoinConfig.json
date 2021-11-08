@@ -9,7 +9,7 @@
     {
       "coin_symbol": "ALGO",
       "amount": 5.0,
-      "purchased_price_usd": 2.5,
+      "purchased_price_usd": 1.2,
       "transaction_fee": 0.35
     }
   ]

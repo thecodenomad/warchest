@@ -17,7 +17,7 @@ func TestCoinUpdateProfit(t *testing.T) {
 	symbol := "ETH"
 	testRateUSD := 30.0
 	testCoin := WarchestCoin{"somethingLong", 50.0, 5.0,
-		0.0, CoinRates{0.0, 0.0, testRateUSD}, symbol, []CoinTransaction{}}
+		0.0, CoinRates{0.0, 0.0, testRateUSD}, symbol, []CoinTransaction{}, ""}
 	expectedNetProfit := 5*testRateUSD - 50
 
 	testCoin.UpdateProfit()
@@ -51,7 +51,7 @@ func TestCoin_Update(t *testing.T) {
 	accountID := "somethingLong"
 	testTransactions := []CoinTransaction{{testAmount, testCost, testFee}}
 	testCoin := WarchestCoin{"somethingLong", 5.0, 0.0,
-		0.0, CoinRates{0.0, 0.0, testRateUSD}, symbol, testTransactions}
+		0.0, CoinRates{0.0, 0.0, testRateUSD}, symbol, testTransactions, ""}
 
 	transactionURL := "/v2/accounts/" + accountID + "/transactions"
 	log.Printf("Transaction URL to mock: %s\n", transactionURL)
@@ -66,7 +66,7 @@ func TestCoin_Update(t *testing.T) {
 	expectedProfit := expectedRate*testAmount - expectedCost
 
 	// Do the thing (ie. run the 3 update methods)
-	testCoin.Update(auth.CBAuth{}, absClient)
+	testCoin.Update(auth.CBAuth{}, absClient, false)
 
 	// Make sure the algo translated the response correctly
 	assert.Equal(t, expectedRate, testCoin.Rates.USD, "should be the same")
@@ -86,7 +86,7 @@ func TestCoin_UpdateRates_Cloudy(t *testing.T) {
 	expectedResp := 0.0
 	testTransactions := []CoinTransaction{}
 	testCoin := WarchestCoin{"somethingLong", 5.0, 0.0,
-		0.0, CoinRates{USD: -10.0}, symbol, testTransactions}
+		0.0, CoinRates{USD: -10.0}, symbol, testTransactions, ""}
 
 	// Update the rates, but since there is an error we should _silently_ ignore and leave the rate at 0
 	// TODO: better error handling around requests maybe needed
@@ -112,7 +112,7 @@ func TestCalculateNetProfit(t *testing.T) {
 	accountID := "somethingLong"
 	testTransactions := []CoinTransaction{{testAmount, testCost, testFee}}
 	testCoin := WarchestCoin{"somethingLong", 5.0, 0.0,
-		0.0, CoinRates{USD: -10.0}, symbol, testTransactions}
+		0.0, CoinRates{USD: -10.0}, symbol, testTransactions, ""}
 
 	wallet := Wallet{map[string]WarchestCoin{symbol: testCoin}, 0.0}
 
@@ -136,7 +136,7 @@ func TestCalculateNetProfit(t *testing.T) {
 		BodyString(transactionJSON)
 
 	// Do the things then set threshold for easier comparison of float values
-	actualResp, err := wallet.UpdateNetProfit(auth.CBAuth{}, absClient)
+	actualResp, err := wallet.UpdateNetProfit(auth.CBAuth{}, absClient, false)
 	actualProfit := fmt.Sprintf("%.14f", actualResp)
 
 	// Make sure there was only 1 call to the remote API, we don't want to be banned!

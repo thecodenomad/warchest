@@ -13,13 +13,38 @@ Assuming `make` and `golang >= 1.16` are installed, then just run:
 
 `make`
 
-## Contained Execution 
+## Running it
 
-To spin up a docker container that includes a running version of the service, run:
+The following environmental variables are available for execution:  
+
+* CB_API_KEY=`<your api key>` 
+* CB_API_SECRET=`<api keys dirty little secret>`
+* WARCHEST_CONFIG=`<path to your warchest transaction config>` -- WIP
+
+When the api key and api secret are set, warchest will query for all of the coins available in the wallet associated
+with the api key, and then proceed to calculate the total net profit for the supported keys (currently only DOGE and 
+SHIB).
+
+`WARCHEST_CONFIG` is meant to skip the querying of available coins' transactions, this is still a WIP and doesn't do
+anything helpful for execution (only useful for dev).
+
+There is also a makefile target to help make execution easier:
 
 `make run`
 
 Your service will be available at http://localhost:8080/
+
+## Demo mode
+
+If `CB_API_KEY=demo` when executing the binary, the command line utility will return the calculations provided by
+the config `src/config/testdata/CoinConfig.json`. 
+
+If the server flag has been passed in, then the server will start in Demo mode providing a UI representation of the
+demo config.
+
+Additionally, there is a make target:
+
+`make demo`
 
 # Testing
 
@@ -41,9 +66,7 @@ L3 testing for this project will include a higher level test using cypress or se
 
 `make L3`
 
-# WIP
-
-## Configuration
+## Configuration -- W.I.P.
 
 Configs are still a work in progress, ideally the coins and their transactions should be saved each
 time they are pulled from the API. 
@@ -74,7 +97,7 @@ Once the config is created, it can be specified at execution time
 
 `WARCHEST_CONFIG=<your config filepath> ./warchest`
 
-(The intention was to add this to your path as the name hasn't changd yet, but these are effectively
+(The intention was to add this to your path as the name hasn't changed yet, but these are effectively
 the transactions. Command line options for handling this better are in the works.)
 
 Ex.
