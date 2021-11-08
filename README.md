@@ -67,7 +67,7 @@ L3 testing for this project will include a higher level test using cypress or se
 `make L3`
 
 
-## Configuration
+## Configuration -- W.I.P.
 
 Configs are still a work in progress, ideally the coins and their transactions should be saved each
 time they are pulled from the API. 
