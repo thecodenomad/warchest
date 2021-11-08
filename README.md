@@ -2,18 +2,23 @@
 
 The purpose of this app is to retrieve stats based on cryptocurrency holdings to produce a consolidated net profit.
 
-## Requirements
+## Design Requirements
 
 - Read in JSON config file (exposed via Environment Variable "WARCHEST_CONFIG")
 - Calculate net profit based on coins held, purchased price, and transaction fees
 
+## Execution and Build requirements
+
+This Readme assumes `make`, `docker` and `golang >= 1.16` are installed. Strictly speaking only `golang >= 1.16` is 
+required, but that isn't very production-like is it?
+
 ## Building
 
-Assuming `make` and `golang >= 1.16` are installed, then just run:
+Just run:
 
 `make`
 
-## Running it
+## Viewing Your Warchest
 
 The following environmental variables are available for execution:  
 
@@ -25,10 +30,10 @@ When the api key and api secret are set, warchest will query for all of the coin
 with the api key, and then proceed to calculate the total net profit for the supported keys (currently only DOGE and 
 SHIB).
 
-`WARCHEST_CONFIG` is meant to skip the querying of available coins' transactions, this is still a WIP and doesn't do
-anything helpful for execution (only useful for dev).
+> NOTE: `WARCHEST_CONFIG` is meant to skip the querying of available coins' transactions.
+> this is still a WIP and doesn't do anything helpful for execution (only useful for dev).
 
-There is also a makefile target to help make execution easier:
+There is also a Makefile target to help make execution easier:
 
 `make run`
 
