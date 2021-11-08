@@ -16,6 +16,9 @@ required, but that isn't very production-like is it?
 
 `make`
 
+> NOTE: If you have permission issues while building, you will need to make sure you have an ssh key established
+> for your github account.
+
 ## Viewing Your Warchest
 
 The following environmental variables are available for execution:  

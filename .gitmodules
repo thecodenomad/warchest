@@ -1,3 +1,3 @@
 [submodule "warchest-ui"]
 	path = warchest-ui
-	url = https://github.com/thecodenomad/warchest.git
+	url = https://github.com/thecodenomad/warchest-ui.git
