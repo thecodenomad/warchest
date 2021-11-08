@@ -66,7 +66,7 @@ func TestCoin_Update(t *testing.T) {
 	expectedProfit := expectedRate*testAmount - expectedCost
 
 	// Do the thing (ie. run the 3 update methods)
-	testCoin.Update(auth.CBAuth{}, absClient)
+	testCoin.Update(auth.CBAuth{}, absClient, false)
 
 	// Make sure the algo translated the response correctly
 	assert.Equal(t, expectedRate, testCoin.Rates.USD, "should be the same")
@@ -136,7 +136,7 @@ func TestCalculateNetProfit(t *testing.T) {
 		BodyString(transactionJSON)
 
 	// Do the things then set threshold for easier comparison of float values
-	actualResp, err := wallet.UpdateNetProfit(auth.CBAuth{}, absClient)
+	actualResp, err := wallet.UpdateNetProfit(auth.CBAuth{}, absClient, false)
 	actualProfit := fmt.Sprintf("%.14f", actualResp)
 
 	// Make sure there was only 1 call to the remote API, we don't want to be banned!

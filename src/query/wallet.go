@@ -86,6 +86,8 @@ func (w *WarchestCoin) UpdateRates(client HTTPClient) {
 		return
 	}
 
+	log.Printf("Rates for %s are:\n\tEUR: %.6f\n\tGBP: %.6f\n\tUSD: %.6f\n",
+		w.Symbol, coinRates.EUR, coinRates.GBP, coinRates.USD)
 	// Update the rates
 	w.Rates.EUR = coinRates.EUR
 	w.Rates.GBP = coinRates.GBP
@@ -104,6 +106,7 @@ func (w *WarchestCoin) UpdateCost() {
 		totalExpense += transaction.PurchasedPrice
 	}
 
+	log.Printf("Cost for %s: %.6f", w.Symbol, totalExpense)
 	w.Amount = totalNumCoins
 	w.Cost = totalExpense
 }
@@ -111,12 +114,17 @@ func (w *WarchestCoin) UpdateCost() {
 //UpdateProfit updates a coin's net profit value
 func (w *WarchestCoin) UpdateProfit() {
 	currentValue := w.Rates.USD*w.Amount - w.Cost
+
+	log.Printf("Net Profit for %s: %.6f", w.Symbol, currentValue)
 	w.Profit = currentValue
 }
 
 //Update runs all internal updates to get the latest value of a particular coin in a wallet
-func (w *WarchestCoin) Update(cbAuth auth.CBAuth, client HTTPClient) {
-	w.UpdateTransactions(cbAuth, client)
+func (w *WarchestCoin) Update(cbAuth auth.CBAuth, client HTTPClient, demoMode bool) {
+
+	if !demoMode {
+		w.UpdateTransactions(cbAuth, client)
+	}
 	w.UpdateCost()
 	w.UpdateRates(client)
 	w.UpdateProfit()
@@ -132,14 +140,14 @@ func (w *WarchestCoin) Banner() {
 }
 
 // UpdateNetProfit will calculate the total profit for the coins in the provided Wallet
-func (w *Wallet) UpdateNetProfit(cbAuth auth.CBAuth, client HTTPClient) (float64, error) {
+func (w *Wallet) UpdateNetProfit(cbAuth auth.CBAuth, client HTTPClient, demoMode bool) (float64, error) {
 	netProfit := 0.0
 
 	log.Printf("There are %d coin(s) in your wallet, calculating...\n", len(w.Coins))
 	for _, coin := range w.Coins {
 
 		// If there aren't transactions for this coin, retrieve them
-		if len(coin.Transactions) < 1 {
+		if !demoMode && len(coin.Transactions) < 1 {
 			coin.UpdateTransactions(cbAuth, client)
 		}
 
@@ -162,6 +170,7 @@ func (w *Wallet) UpdateNetProfit(cbAuth auth.CBAuth, client HTTPClient) (float64
 
 	// Make sure objects value is updated
 	w.NetProfit = netProfit
+	log.Printf("Wallet's calculated Net Profit: %.6f", netProfit)
 	return netProfit, nil
 }
 
@@ -173,7 +182,7 @@ func (w *Wallet) UpdateCoinRates(client HTTPClient) {
 }
 
 // GetWarchestCoins will retrieve all of the 'accounts' and convert them into a map of WarchestCoins
-func GetWarchestCoins(cbAuth auth.CBAuth, client HTTPClient) (map[string]WarchestCoin, error) {
+func GetWarchestCoins(cbAuth auth.CBAuth, client HTTPClient, demoMode bool) (map[string]WarchestCoin, error) {
 
 	accountResp, err := CBRetrieveAccounts(cbAuth, client)
 	if err != nil {
@@ -203,7 +212,7 @@ func GetWarchestCoins(cbAuth auth.CBAuth, client HTTPClient) (map[string]Warches
 
 		// Make sure coin updates appropriately
 		// TODO: Add error handling around this as update _could_ fail
-		coinToAdd.Update(cbAuth, client)
+		coinToAdd.Update(cbAuth, client, demoMode)
 
 		// Add to the map!
 		log.Printf("Adding coin %s to the list of coins", coinToAdd.Symbol)

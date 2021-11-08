@@ -2,3 +2,4 @@
 warchest
 coverage.*
 public/*
+warchest.log

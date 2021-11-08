@@ -30,8 +30,8 @@ func (c ConfigurationError) Error() string {
 	return string(c)
 }
 
-// LocalFile is a wrapper struct around the config file allowing for regeneration and storing of loaded config
-type LocalFile struct {
+// LocalConfigFile is a wrapper struct around the config file allowing for regeneration and storing of loaded config
+type LocalConfigFile struct {
 	Filepath       string
 	ByteValue      []byte
 	WarchestConfig Config
@@ -51,7 +51,7 @@ type Transaction struct {
 }
 
 // Exists method that checks if the config file exists
-func (c *LocalFile) Exists() bool {
+func (c *LocalConfigFile) Exists() bool {
 	// Check for files existence first
 	_, err := os.Stat(c.Filepath)
 	if errors.Is(err, os.ErrNotExist) {
@@ -61,7 +61,7 @@ func (c *LocalFile) Exists() bool {
 }
 
 // Load method loads the config file into a byte array
-func (c *LocalFile) Load() ([]byte, error) {
+func (c *LocalConfigFile) Load() ([]byte, error) {
 	// Try and load the config
 	jsonFile, err := os.Open(c.Filepath)
 	if err != nil {
@@ -77,7 +77,7 @@ func (c *LocalFile) Load() ([]byte, error) {
 }
 
 // Parse method parses a loaded config file from the internal ByteValue array.
-func (c *LocalFile) Parse() (Config, error) {
+func (c *LocalConfigFile) Parse() (Config, error) {
 	// Unmarshall the JSON
 	tmpConfig := Config{}
 	err := json.Unmarshal(c.ByteValue, &tmpConfig)
@@ -90,7 +90,7 @@ func (c *LocalFile) Parse() (Config, error) {
 }
 
 // ToConfig method takes the config file and produces a instantiated config that warchest can consume
-func (c *LocalFile) ToConfig() (Config, error) {
+func (c *LocalConfigFile) ToConfig() (Config, error) {
 
 	// Check if the file has already been loaded
 	if !c.Exists() {
